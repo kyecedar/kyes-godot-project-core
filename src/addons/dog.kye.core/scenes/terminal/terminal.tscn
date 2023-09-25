@@ -1,0 +1,151 @@
+[gd_scene load_steps=5 format=3 uid="uid://2kb7m6ibhmg8"]
+
+[ext_resource type="Script" path="res://addons/dog.kye.core/scenes/terminal/terminal.gd" id="1_l1nv4"]
+[ext_resource type="LabelSettings" uid="uid://cgyyi381ru37w" path="res://addons/dog.kye.core/resources/themes/debugger/terminal_titlebar_label.res" id="2_mc30k"]
+[ext_resource type="StyleBox" uid="uid://c1l6tsg75urvx" path="res://addons/dog.kye.core/resources/themes/empty.stylebox" id="3_nd82i"]
+[ext_resource type="Theme" uid="uid://ceff5e5l8b72" path="res://addons/dog.kye.core/resources/themes/debugger/terminal.theme" id="4_5hecs"]
+
+[node name="terminal" type="Control"]
+custom_minimum_size = Vector2(250, 250)
+layout_mode = 3
+anchors_preset = 0
+theme = ExtResource("4_5hecs")
+script = ExtResource("1_l1nv4")
+
+[node name="background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="content" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="vbox" type="VBoxContainer" parent="content"]
+layout_mode = 2
+
+[node name="titlebar" type="BoxContainer" parent="content/vbox"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="text_region" type="Control" parent="content/vbox/titlebar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="title" type="Label" parent="content/vbox/titlebar/text_region"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "TERMINAL"
+label_settings = ExtResource("2_mc30k")
+vertical_alignment = 1
+clip_text = true
+
+[node name="drag" type="Panel" parent="content/vbox/titlebar/text_region"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("3_nd82i")
+
+[node name="hide_button" type="Button" parent="content/vbox/titlebar"]
+custom_minimum_size = Vector2(18, 0)
+layout_mode = 2
+icon_alignment = 1
+
+[node name="scroll" type="ScrollContainer" parent="content/vbox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="container" type="VBoxContainer" parent="content/vbox/scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 2
+
+[node name="history" type="RichTextLabel" parent="content/vbox/scroll/container"]
+layout_mode = 2
+theme = ExtResource("4_5hecs")
+bbcode_enabled = true
+text = "/////////////////////////////////////"
+fit_content = true
+scroll_active = false
+
+[node name="edge_t" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+grow_horizontal = 2
+
+[node name="edge_r" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="edge_b" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="edge_l" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+grow_vertical = 2
+
+[node name="edge_tl" type="Panel" parent="."]
+layout_mode = 1
+
+[node name="edge_tr" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+grow_horizontal = 0
+
+[node name="edge_br" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="edge_bl" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0

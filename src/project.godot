@@ -16,4 +16,4 @@ config/icon="res://icon.svg"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/dog.kye.debugger/plugin.cfg")
+enabled=PackedStringArray()
