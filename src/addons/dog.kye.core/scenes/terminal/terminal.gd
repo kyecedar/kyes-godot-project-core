@@ -3,6 +3,7 @@ class_name TerminalNode
 extends Control
 
 @onready var titlebar : Label = $content/vbox/titlebar/text_region/title
+@onready var titlebar_drag : Panel = $content/vbox/titlebar/text_region/drag
 
 @onready var history : RichTextLabel = $content/vbox/scroll/container/history
 @onready var caret   : Label    = $content/vbox/scroll/container/input/caret_container/caret
@@ -48,6 +49,11 @@ func _ready() -> void:
 	
 	input.text_changed.connect(_on_input_change)
 	
+	get_viewport().size_changed.connect(_on_viewport_resize)
+	
+	titlebar_drag.mouse_entered.connect(func(): if not dragging: hovering_titlebar = true)
+	titlebar_drag.mouse_exited.connect(func(): if not dragging: hovering_titlebar = false)
+	
 	_handle_hovering_for_edge(edge_t)
 	_handle_hovering_for_edge(edge_r)
 	_handle_hovering_for_edge(edge_b)
@@ -72,6 +78,24 @@ func _input(event: InputEvent) -> void:
 					submit_input()
 				else:
 					input.insert_text_at_caret('\n')
+	
+	if event is InputEventMouseMotion:
+		if dragging:
+			_handle_drag(event)
+		elif resizing:
+			_handle_edge_drag(event)
+	
+	elif event is InputEventMouseButton:
+		if hovering_edge:
+			if not resizing:
+				resize_position = position
+				resize_size = size
+			resizing = event.button_index == MOUSE_BUTTON_LEFT and event.pressed
+		
+		if hovering_titlebar:
+			if not dragging:
+				resize_position = position - event.position
+			dragging = event.button_index == MOUSE_BUTTON_LEFT and event.pressed
 
 #region //  FONT.
 
@@ -136,34 +160,81 @@ func etch(text: String) -> void:
 
 #endregion  ETCH.
 
-#region // 󰁌 RESIZE.
+#region // 󰁌 RESIZE & DRAG.
 
-var hovering_edge : Panel ## Panel the user is hovering over.
-var resizing := false ## If terminal is resizing.
+var hovering_titlebar : bool = false ## If user is hovering over titlebar.
+var hovering_edge     : Panel ## Panel the user is hovering over.
+var resizing          : bool = false ## If terminal is being resized.
+var dragging          : bool = false ## If terminal is being dragged.
+var resize_position   : Vector2i = Vector2i.ZERO ## When resizing, use this as reference for what position will be.[br]Also used for dragging offset.
+var resize_size       : Vector2i = Vector2i.ZERO ## When resizing, use this as reference for what size will be.[br]Also used for temp parent size in [method _constrain].
 
 ## Constrains terminal to fit within screen.
 func _constrain() -> void:
+	resize_size = _get_parent_size()
+	
 	# keep minimum size.
 	size.x = max(size.x, minimum_size.x)
 	size.y = max(size.y, minimum_size.y)
 	
 	# keep within screen size.
-	size.x = min(size.x, _get_parent_size().x)
-	size.y = min(size.y, _get_parent_size().y)
+	size.x = min(size.x, resize_size.x)
+	size.y = min(size.y, resize_size.y)
 	
 	# keep within screen bounds.
+	position.x = min(position.x + size.x, resize_size.x) - size.x
+	position.y = min(position.y + size.y, resize_size.y) - size.y
 	position.x = max(position.x, 0)
 	position.y = max(position.y, 0)
-	position.x = min(position.x - size.x, _get_parent_size().x - size.x)
-	position.y = min(position.y - size.y, _get_parent_size().y - size.y)
 
 ## Connect signals to given panel.[br]
 ## When hovered, it is stored in [member TerminalNode.hovering_edge].
 func _handle_hovering_for_edge(edge: Panel) -> void:
-	edge.mouse_entered.connect(func(): hovering_edge = edge)
-	edge.mouse_exited.connect(func(): hovering_edge = null)
+	edge.mouse_entered.connect(func(): if not resizing: hovering_edge = edge)
+	edge.mouse_exited.connect(func(): if not resizing: hovering_edge = null)
 
-#endregion 󰁌 RESIZE.
+func _handle_drag(event: InputEvent) -> void:
+	position.x = min(max(event.position.x + resize_position.x, 0), _get_parent_size().x - size.x)
+	position.y = min(max(event.position.y + resize_position.y, 0), _get_parent_size().y - size.y)
+
+func _handle_edge_drag(event: InputEvent) -> void:
+	match hovering_edge.name:
+		'edge_t':
+			position.y = min(event.position.y, (resize_position.y + resize_size.y) - minimum_size.y)
+			size.y = max(minimum_size.y, (resize_position.y - max(position.y, 0)) + resize_size.y)
+		'edge_r':
+			size.x = max(minimum_size.x, min(event.position.x, _get_parent_size().x) - resize_position.x)
+		'edge_b':
+			size.y = max(minimum_size.y, min(event.position.y, _get_parent_size().y) - resize_position.y)
+		'edge_l':
+			position.x = min(event.position.x, (resize_position.x + resize_size.x) - minimum_size.x)
+			size.x = max(minimum_size.x, (resize_position.x - max(position.x, 0)) + resize_size.x)
+		'edge_tl':
+			position.y = min(event.position.y, (resize_position.y + resize_size.y) - minimum_size.y)
+			size.y = max(minimum_size.y, (resize_position.y - max(position.y, 0)) + resize_size.y)
+			position.x = min(event.position.x, (resize_position.x + resize_size.x) - minimum_size.x)
+			size.x = max(minimum_size.x, (resize_position.x - max(position.x, 0)) + resize_size.x)
+		'edge_tr':
+			position.y = min(event.position.y, (resize_position.y + resize_size.y) - minimum_size.y)
+			size.y = max(minimum_size.y, (resize_position.y - max(position.y, 0)) + resize_size.y)
+			size.x = max(minimum_size.x, min(event.position.x, _get_parent_size().x) - resize_position.x)
+		'edge_br':
+			size.y = max(minimum_size.y, min(event.position.y, _get_parent_size().y) - resize_position.y)
+			size.x = max(minimum_size.x, min(event.position.x, _get_parent_size().x) - resize_position.x)
+		'edge_bl':
+			size.y = max(minimum_size.y, min(event.position.y, _get_parent_size().y) - resize_position.y)
+			position.x = min(event.position.x, (resize_position.x + resize_size.x) - minimum_size.x)
+			size.x = max(minimum_size.x, (resize_position.x - max(position.x, 0)) + resize_size.x)
+
+func _on_viewport_resize() -> void:
+	# don't allow terminal resizing or dragging during viewport resizing.
+	hovering_titlebar = false
+	hovering_edge = null
+	
+	# constrain to fit parent.
+	_constrain()
+
+#endregion 󰁌 RESIZE & DRAG.
 
 #region // GETTERS.
 
