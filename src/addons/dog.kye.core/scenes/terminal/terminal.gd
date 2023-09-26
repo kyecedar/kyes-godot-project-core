@@ -6,6 +6,7 @@ extends Control
 @onready var caret   : Label    = $content/vbox/scroll/container/input/caret_container/caret
 @onready var input   : TextEdit = $content/vbox/scroll/container/input/lines/main
 @onready var ghost   : TextEdit = $content/vbox/scroll/container/input/lines/ghost
+@onready var caret_container : Control       = $content/vbox/scroll/container/input/caret_container
 @onready var input_container : HBoxContainer = $content/vbox/scroll/container/input
 
 @onready var edge_t  : Panel = $edge_t
@@ -31,6 +32,9 @@ var character_height : int ## Height of a single character.[br]Obtained by getti
 
 func _ready() -> void:
 	parent_control_node = get_parent_control()
+	
+	# TODO : move this to function another function, make it so that you can change font size.
+	caret_container.custom_minimum_size.x = caret.size.x
 	character_width  = caret.size.x / caret.text.length()
 	character_height = caret.size.y
 	
@@ -72,9 +76,20 @@ func _input(event: InputEvent) -> void:
 
 ## Submits and clears input. Adds input text to history.
 func submit_input() -> void:
-	print(caret.text + input.text)
-	history.newline()
-	history.add_text(caret.text + input.text)
+	var split_input : PackedStringArray = input.text.split('\n')
+	var display_input : String = caret.text
+	
+	if split_input.size() == 0:
+		return
+	
+	display_input += split_input[0]
+	split_input.remove_at(0)
+	
+	for line in split_input:
+		display_input += '\n' + ' '.repeat(caret.text.length()) + line
+	
+	history.add_text('\n' + display_input)
+	print(display_input)
 	
 	input.text = ""
 	
