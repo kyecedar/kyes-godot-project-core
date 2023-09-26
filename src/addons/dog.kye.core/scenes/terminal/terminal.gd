@@ -59,9 +59,26 @@ func _ready() -> void:
 
 func _input(event: InputEvent) -> void:
 	if input.has_focus():
-		pass
+		if event is InputEventKey:
+			if (Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_KP_ENTER)):
+				# https://www.reddit.com/r/godot/comments/xn2tmg/comment/j1dyaeg
+				if not Input.is_key_pressed(KEY_SHIFT):
+					get_viewport().set_input_as_handled()
+					submit_input()
+				else:
+					input.insert_text_at_caret('\n')
 
 #region //  INPUT.
+
+## Submits and clears input. Adds input text to history.
+func submit_input() -> void:
+	print(caret.text + input.text)
+	history.newline()
+	history.add_text(caret.text + input.text)
+	
+	input.text = ""
+	
+	# TODO : send command to be parsed.
 
 func _on_input_change() -> void:
 	input_container.custom_minimum_size.y = input.size.y + character_height * 2
