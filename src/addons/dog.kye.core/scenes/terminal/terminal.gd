@@ -2,6 +2,8 @@
 class_name TerminalNode
 extends Control
 
+@onready var titlebar : Label = $content/vbox/titlebar/text_region/title
+
 @onready var history : RichTextLabel = $content/vbox/scroll/container/history
 @onready var caret   : Label    = $content/vbox/scroll/container/input/caret_container/caret
 @onready var input   : TextEdit = $content/vbox/scroll/container/input/lines/main
@@ -18,11 +20,13 @@ extends Control
 @onready var edge_br : Panel = $edge_br
 @onready var edge_bl : Panel = $edge_bl
 
-@export var boot_text_enabled : bool = true ## If boot text should be shown when terminal is ready.
-@export_multiline var boot_text : String = "[color=#ffffff88]running v{{TERMINAL_VERSION}} of terminal.\nchange this text in the inspector.\n\n\"help\" for help.[/color]"
+@export var title : String = "TERMINAL" : set = _set_title
+@export_range(6, 48) var font_size : int = 10 : set = _set_font_size ## Font size of history and input.[br]Does not apply to titlebar.
 @export var minimum_size := Vector2.ZERO : set = _set_minimum_size ## Minimum size of window.
 @export_range(0, 10) var edge_size   : int = 4 : set = _set_edge_size ## Size of draggable edges.
 @export_range(0, 10) var corner_size : int = 6 : set = _set_corner_size ## Size of draggable corners.
+@export var boot_text_enabled : bool = true ## If boot text should be shown when terminal is ready.
+@export_multiline var boot_text : String = "[color=#ffffff88]running v{{TERMINAL_VERSION}} of terminal.\nchange this text in the inspector.\n\n\"help\" for help.[/color]"
 
 var parent_control_node : Control ## Parent. Used to constrain terminal inside.
 var character_width  : int ## Width of a single character.[br]Obtained by getting width of caret.
@@ -33,14 +37,11 @@ var character_height : int ## Height of a single character.[br]Obtained by getti
 func _ready() -> void:
 	parent_control_node = get_parent_control()
 	
-	# TODO : move this to function another function, make it so that you can change font size.
-	caret_container.custom_minimum_size.x = caret.size.x
-	character_width  = caret.size.x / caret.text.length()
-	character_height = caret.size.y
-	
 	Logger.setVariable("TERMINAL_VERSION", "0.5")
 	
 	# invoking setters.
+	title = title
+	font_size = font_size
 	minimum_size = minimum_size
 	edge_size = edge_size
 	corner_size = corner_size
@@ -72,6 +73,29 @@ func _input(event: InputEvent) -> void:
 				else:
 					input.insert_text_at_caret('\n')
 
+#region //  FONT.
+
+func set_font_size(size: int) -> void:
+	if not history:
+		return
+	
+	# history.
+	history.add_theme_font_size_override("normal_font_size"       , size)
+	history.add_theme_font_size_override("bold_font_size"         , size)
+	history.add_theme_font_size_override("italics_font_size"      , size)
+	history.add_theme_font_size_override("bold_italics_font_size" , size)
+	history.add_theme_font_size_override("mono_font_size"         , size)
+	
+	# input.
+	input.add_theme_font_size_override("font_size", size)
+	ghost.add_theme_font_size_override("font_size", size)
+	
+	# caret.
+	caret.add_theme_font_size_override("font_size", size)
+	_update_caret_sizing.call_deferred() # call at end of frame.
+
+#endregion  FONT.
+
 #region //  INPUT.
 
 ## Submits and clears input. Adds input text to history.
@@ -96,7 +120,11 @@ func submit_input() -> void:
 	# TODO : send command to be parsed.
 
 func _on_input_change() -> void:
-	input_container.custom_minimum_size.y = input.size.y + character_height * 2
+	pass
+
+func _update_caret_sizing() -> void:
+	caret_container.custom_minimum_size.x = caret.size.x
+	input_container.custom_minimum_size.y = input.size.y + caret.size.y * 2
 	input_container.size.y = input_container.custom_minimum_size.y
 
 #endregion  INPUT.
@@ -146,6 +174,17 @@ func _get_parent_size() -> Vector2i:
 #endregion GETTERS.
 
 #region // SETTERS.
+
+## Sets text of titlebar.
+func _set_title(value: String) -> void:
+	title = value
+	if titlebar:
+		titlebar.text = value
+
+## Sets font size and updates associated theme overrides.
+func _set_font_size(value: int) -> void:
+	font_size = value
+	set_font_size(value)
 
 ## Clamps and rounds vector between 0 and 1000.
 func _set_minimum_size(value: Vector2) -> void:

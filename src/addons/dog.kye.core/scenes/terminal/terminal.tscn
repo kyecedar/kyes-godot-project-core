@@ -103,10 +103,13 @@ metadata/_edit_lock_ = true
 layout_mode = 2
 focus_mode = 2
 theme = ExtResource("4_5hecs")
+theme_override_font_sizes/normal_font_size = 10
+theme_override_font_sizes/bold_font_size = 10
+theme_override_font_sizes/italics_font_size = 10
+theme_override_font_sizes/bold_italics_font_size = 10
+theme_override_font_sizes/mono_font_size = 10
 bbcode_enabled = true
-text = "[color=#ffffff88]kye's terminal v{{TERMINAL_VERSION}}
-
-///////////////////////////////////////
+text = "[color=#ffffff88]///////////////////////////////////////
 //// [/color][rainbow freq=0.01 sat=0.8]made by kye.[/rainbow][color=#ffffff88] //// [/color][rainbow freq=0.01 sat=0.8]>:3c[/rainbow][color=#ffffff88] ///////////
 /////////// [/color][rainbow freq=0.01 sat=0.8]with love and friends.[/rainbow][color=#ffffff88] ////
 ///////////////////////////////////////
@@ -120,13 +123,14 @@ selection_enabled = true
 metadata/_edit_lock_ = true
 
 [node name="input" type="HBoxContainer" parent="content/vbox/scroll/container"]
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 0
 metadata/_edit_lock_ = true
 
 [node name="caret_container" type="Control" parent="content/vbox/scroll/container/input"]
-custom_minimum_size = Vector2(9, 0)
+custom_minimum_size = Vector2(12, 0)
 layout_mode = 2
 metadata/_edit_lock_ = true
 
@@ -134,6 +138,7 @@ metadata/_edit_lock_ = true
 layout_mode = 1
 offset_right = 6.0
 offset_bottom = 14.0
+theme_override_font_sizes/font_size = 10
 text = "> "
 metadata/_edit_lock_ = true
 
@@ -148,6 +153,7 @@ anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 14.0
 grow_horizontal = 2
+theme_override_font_sizes/font_size = 10
 editable = false
 context_menu_enabled = false
 shortcut_keys_enabled = false
@@ -168,6 +174,7 @@ anchor_right = 1.0
 offset_bottom = 14.0
 grow_horizontal = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
 context_menu_enabled = false
 wrap_mode = 1
 autowrap_mode = 1
