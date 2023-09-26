@@ -48,6 +48,7 @@ func _ready() -> void:
 	corner_size = corner_size
 	
 	input.text_changed.connect(_on_input_change)
+	get_viewport().size_changed.connect(_on_viewport_resize)
 	
 	titlebar_drag.mouse_entered.connect(func(): if not dragging: hovering_titlebar = true)
 	titlebar_drag.mouse_exited.connect(func(): if not dragging: hovering_titlebar = false)
@@ -228,6 +229,8 @@ func _on_viewport_resize() -> void:
 	# don't allow terminal resizing or dragging during viewport resizing.
 	hovering_titlebar = false
 	hovering_edge = null
+	
+	print(position)
 	
 	# constrain to fit parent.
 	_constrain()
