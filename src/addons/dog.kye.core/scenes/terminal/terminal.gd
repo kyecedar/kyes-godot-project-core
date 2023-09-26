@@ -23,7 +23,7 @@ extends Control
 
 @export var title : String = "TERMINAL" : set = _set_title ## Text to be put in the titlebar.
 @export_range(6, 48) var font_size : int = 10 : set = _set_font_size ## Font size of history and input.[br]Does not apply to titlebar.
-@export var minimum_size := Vector2.ZERO : set = _set_minimum_size ## Minimum size of window.
+@export var minimum_size := Vector2i(250, 250) : set = _set_minimum_size ## Minimum size of window.
 @export_range(0, 10) var edge_size   : int = 4 : set = _set_edge_size ## Size of draggable edges.
 @export_range(0, 10) var corner_size : int = 6 : set = _set_corner_size ## Size of draggable corners.
 @export var boot_text_enabled : bool = true ## If boot text should be shown when terminal is ready.
@@ -230,8 +230,6 @@ func _on_viewport_resize() -> void:
 	hovering_titlebar = false
 	hovering_edge = null
 	
-	print(position)
-	
 	# constrain to fit parent.
 	_constrain()
 
@@ -262,6 +260,7 @@ func _set_font_size(value: int) -> void:
 func _set_minimum_size(value: Vector2) -> void:
 	minimum_size.x = round(clamp(value.x, 0, 1000))
 	minimum_size.y = round(clamp(value.y, 0, 1000))
+	custom_minimum_size = minimum_size
 
 ## Sets size of draggable edges.
 func _set_edge_size(value: int) -> void:
