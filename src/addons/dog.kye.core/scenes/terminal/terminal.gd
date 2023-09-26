@@ -21,7 +21,7 @@ extends Control
 @onready var edge_br : Panel = $edge_br
 @onready var edge_bl : Panel = $edge_bl
 
-@export var title : String = "TERMINAL" : set = _set_title
+@export var title : String = "TERMINAL" : set = _set_title ## Text to be put in the titlebar.
 @export_range(6, 48) var font_size : int = 10 : set = _set_font_size ## Font size of history and input.[br]Does not apply to titlebar.
 @export var minimum_size := Vector2.ZERO : set = _set_minimum_size ## Minimum size of window.
 @export_range(0, 10) var edge_size   : int = 4 : set = _set_edge_size ## Size of draggable edges.
@@ -38,7 +38,7 @@ var character_height : int ## Height of a single character.[br]Obtained by getti
 func _ready() -> void:
 	parent_control_node = get_parent_control()
 	
-	Logger.setVariable("TERMINAL_VERSION", "0.5")
+	Logger.setVariable("TERMINAL_VERSION", "0.8")
 	
 	# invoking setters.
 	title = title
@@ -48,8 +48,6 @@ func _ready() -> void:
 	corner_size = corner_size
 	
 	input.text_changed.connect(_on_input_change)
-	
-	get_viewport().size_changed.connect(_on_viewport_resize)
 	
 	titlebar_drag.mouse_entered.connect(func(): if not dragging: hovering_titlebar = true)
 	titlebar_drag.mouse_exited.connect(func(): if not dragging: hovering_titlebar = false)
@@ -92,10 +90,10 @@ func _input(event: InputEvent) -> void:
 				resize_size = size
 			resizing = event.button_index == MOUSE_BUTTON_LEFT and event.pressed
 		
-		if hovering_titlebar:
+		elif hovering_titlebar or event.button_index == MOUSE_BUTTON_MIDDLE:
 			if not dragging:
 				resize_position = position - event.position
-			dragging = event.button_index == MOUSE_BUTTON_LEFT and event.pressed
+			dragging = (event.button_index == MOUSE_BUTTON_LEFT || event.button_index == MOUSE_BUTTON_MIDDLE) and event.pressed
 
 #region //  FONT.
 
