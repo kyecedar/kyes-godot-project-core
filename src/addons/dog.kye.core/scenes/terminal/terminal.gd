@@ -29,6 +29,7 @@ extends Control
 @export_range(0, 10) var corner_size : int = 6 : set = _set_corner_size ## Size of draggable corners.
 @export var boot_text_enabled : bool = true ## If boot text should be shown when terminal is ready.
 @export_multiline var boot_text : String = "[color=#ffffff88]running v{{TERMINAL_VERSION}} of terminal.\nchange this text in the inspector.\n\n\"help\" for help.[/color]"
+@export var log_input_on_submit : bool = true ## If the command should be printed and logged when submitting.
 
 var parent_control_node : Control ## Parent. Used to constrain terminal inside.
 var character_width  : int ## Width of a single character.[br]Obtained by getting width of caret.
@@ -128,24 +129,26 @@ func set_font_size(size: int) -> void:
 
 ## Submits and clears input. Adds input text to history.
 func submit_input() -> void:
-	var split_input : PackedStringArray = input.text.split('\n')
-	var display_input : String = caret.text
-	
-	if split_input.size() == 0:
-		return
-	
-	display_input += split_input[0]
-	split_input.remove_at(0)
-	
-	for line in split_input:
-		display_input += '\n' + ' '.repeat(caret.text.length()) + line
-	
-	history.add_text('\n' + display_input)
-	print(display_input)
-	
-	input.text = ""
+	# log and print command.
+	if log_input_on_submit:
+		var split_input : PackedStringArray = input.text.split('\n')
+		var display_input : String = caret.text
+		
+		if split_input.size() == 0:
+			return
+		
+		display_input += split_input[0]
+		split_input.remove_at(0)
+		
+		for line in split_input:
+			display_input += '\n' + ' '.repeat(caret.text.length()) + line
+		
+		history.add_text('\n' + display_input)
+		print(display_input)
 	
 	# TODO : send command to be parsed.
+	
+	input.text = ""
 
 func _on_input_change() -> void:
 	pass
