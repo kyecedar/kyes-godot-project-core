@@ -1,9 +1,11 @@
 @tool
+class_name TerminalNode
 extends Control
 
 @onready var history : RichTextLabel = $content/vbox/scroll/container/history
 @onready var input   : TextEdit = $content/vbox/scroll/container/input/lines/main
 @onready var ghost   : TextEdit = $content/vbox/scroll/container/input/lines/ghost
+@onready var input_container : HBoxContainer = $content/vbox/scroll/container/input
 
 @onready var edge_t  : Panel = $edge_t
 @onready var edge_r  : Panel = $edge_r
@@ -14,8 +16,8 @@ extends Control
 @onready var edge_br : Panel = $edge_br
 @onready var edge_bl : Panel = $edge_bl
 
-@export var do_boot_text : bool = true ## whether boot text should be shown when terminal is operational.
-@export var boot_text : String = "v{{TERMINAL_VERSION}}"
+@export var do_boot_text : bool = true ## Whether boot text should be shown when terminal is ready.
+@export var boot_text : String = "[color=#ffffff88]kye's terminal v{{TERMINAL_VERSION}}[/color]\n\n[color=#ffffff88]///////////////////////////////////////\n///////////////////////////////////////\n///////////////////////////////////////\n///////////////////////////////////////[/color]"
 @export var minimum_size := Vector2.ZERO : set = _set_minimum_size
 @export_range(0, 10) var edge_size   : int = 4 : set = _set_edge_size
 @export_range(0, 10) var corner_size : int = 6 : set = _set_corner_size
@@ -33,6 +35,8 @@ func _ready() -> void:
 	edge_size = edge_size
 	corner_size = corner_size
 	
+	input.text_changed.connect(_on_input_change)
+	
 	_handle_hovering_for_edge(edge_t)
 	_handle_hovering_for_edge(edge_r)
 	_handle_hovering_for_edge(edge_b)
@@ -44,18 +48,32 @@ func _ready() -> void:
 	
 	if do_boot_text:
 		history.parse_bbcode(Logger.formatString(boot_text))
+	
+	game.set_current_terminal(self)
+	
+	Logger.etch_raw("[rainbow freq=0.005 sat=0.8 val=1]shit[/rainbow]")
 
 #region //  INPUT.
 
+func _on_input_change() -> void:
+	input_container.custom_minimum_size.y = input.size.y + 28
+	input_container.size.y = input_container.custom_minimum_size.y
 
 #endregion  INPUT.
 
+#region //  ETCH.
+
+func etch(text: String) -> void:
+	history.append_text(text)
+
+#endregion  ETCH.
+
 #region // 󰁌 RESIZE.
 
-var hovering_edge : Panel ## panel the user is hovering over.
-var resizing := false ## if terminal is resizing.
+var hovering_edge : Panel ## Panel the user is hovering over.
+var resizing := false ## If terminal is resizing.
 
-## constrains terminal to fit within screen.
+## Constrains terminal to fit within screen.
 func _constrain() -> void:
 	# keep minimum size.
 	size.x = max(size.x, minimum_size.x)
@@ -71,7 +89,8 @@ func _constrain() -> void:
 	position.x = min(position.x - size.x, _get_parent_size().x - size.x)
 	position.y = min(position.y - size.y, _get_parent_size().y - size.y)
 
-## connect signals to given panel. when hovered, it is stored in "hover_edge".
+## Connect signals to given panel.[br]
+## When hovered, it is stored in [member TerminalNode.hovering_edge].
 func _handle_hovering_for_edge(edge: Panel) -> void:
 	edge.mouse_entered.connect(func(): hovering_edge = edge)
 	edge.mouse_exited.connect(func(): hovering_edge = null)
@@ -80,7 +99,7 @@ func _handle_hovering_for_edge(edge: Panel) -> void:
 
 #region // GETTERS.
 
-## get size of parent. if no parent control node, then use window size.
+## Get size of parent. If no parent control node, then use window size.
 func _get_parent_size() -> Vector2i:
 	return parent_control_node.size if parent_control_node else DisplayServer.window_get_size()
 
@@ -88,12 +107,12 @@ func _get_parent_size() -> Vector2i:
 
 #region // SETTERS.
 
-## clamps and rounds vector between 0 and 1000.
+## Clamps and rounds vector between 0 and 1000.
 func _set_minimum_size(value: Vector2) -> void:
 	minimum_size.x = round(clamp(value.x, 0, 1000))
 	minimum_size.y = round(clamp(value.y, 0, 1000))
 
-## sets size of draggable edges.
+## Sets size of draggable edges.
 func _set_edge_size(value: int) -> void:
 	edge_size = value
 	edge_t.custom_minimum_size.y = value
@@ -101,7 +120,7 @@ func _set_edge_size(value: int) -> void:
 	edge_b.custom_minimum_size.y = value
 	edge_l.custom_minimum_size.x = value
 
-## sets the size of draggable corners.
+## Sets size of draggable corners.
 func _set_corner_size(value: int) -> void:
 	corner_size = value
 	edge_tl.custom_minimum_size.x = value

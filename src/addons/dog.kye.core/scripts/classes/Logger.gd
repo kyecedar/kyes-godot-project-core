@@ -14,38 +14,53 @@ enum STATUS {
 ## Maximum amount before removing oldest lines.
 const MAX_LINE_COUNT : int = 100
 
+## If verbose logs should be shown. See [method Logger.etch_verbose]
+static var verbose : bool = false
+
 ## Format variables. See [method Logger.formatString]
 static var variables : Dictionary = {}
 
 #region //  ETCH.
 
-static func etch(status: STATUS, value: String) -> void:
-	pass
+# TODO : log to file.
 
-static func etch_info(value: String) -> void:
-	etch(STATUS.INFO, value)
+static func etch(status: STATUS, text: String) -> void:
+	Terminal.etch(status, text)
+	print_rich("[code]%s[/code] %s" % [_get_etch_status(status), formatString(text)])
 
-static func etch_success(value: String) -> void:
-	etch(STATUS.SUCCESS, value)
+static func etch_info(text: String) -> void:
+	etch(STATUS.INFO, text)
 
-static func etch_warning(value: String) -> void:
-	etch(STATUS.WARNING, value)
+static func etch_success(text: String) -> void:
+	etch(STATUS.SUCCESS, text)
 
-static func etch_error(value: String) -> void:
-	etch(STATUS.ERROR, value)
+static func etch_warning(text: String) -> void:
+	etch(STATUS.WARNING, text)
 
-static func etch_fatal(value: String) -> void:
-	etch(STATUS.FATAL, value)
+static func etch_error(text: String) -> void:
+	etch(STATUS.ERROR, text)
 
-static func etch_verbose(value: String) -> void:
-	# always use info.
-	pass
+static func etch_fatal(text: String) -> void:
+	etch(STATUS.FATAL, text)
 
-static func etch_rich(value: String) -> void:
-	pass
+## Etches to terminal if [member Logger.verbose] is enabled.[br][br]
+## [url=https://docs.godotengine.org/en/stable/tutorials/ui/bbcode_in_richtextlabel.html#reference]BBCode Reference[/url]
+static func etch_verbose(text: String) -> void:
+	if verbose:
+		etch(STATUS.INFO, text + '\n')
 
-static func etch_raw(value: String) -> void:
-	pass
+## Etches to terminal with newline.[br][br]
+## [url=https://docs.godotengine.org/en/stable/tutorials/ui/bbcode_in_richtextlabel.html#reference]BBCode Reference[/url]
+static func etch_rich(text: String) -> void:
+	Terminal.etch_raw(text + '\n')
+	print_rich(text)
+
+## Etches to terminal without newline.[br]
+## Uses newline on terminal.[br][br]
+## [url=https://docs.godotengine.org/en/stable/tutorials/ui/bbcode_in_richtextlabel.html#reference]BBCode Reference[/url]
+static func etch_raw(text: String) -> void:
+	Terminal.etch_raw(text)
+	print_rich(text)
 
 ## Get string of given status.[br]
 ## Used for logging to editor or file.[br]

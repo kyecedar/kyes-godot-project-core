@@ -14,6 +14,10 @@ config/name="4.2 Core"
 config/features=PackedStringArray("4.2", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+game="*res://addons/dog.kye.core/scripts/auto/game.gd"
+
 [editor_plugins]
 
 enabled=PackedStringArray()
