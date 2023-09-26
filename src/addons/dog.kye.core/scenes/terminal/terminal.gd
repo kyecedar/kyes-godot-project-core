@@ -3,6 +3,7 @@ class_name TerminalNode
 extends Control
 
 @onready var history : RichTextLabel = $content/vbox/scroll/container/history
+@onready var caret   : Label    = $content/vbox/scroll/container/input/caret_container/caret
 @onready var input   : TextEdit = $content/vbox/scroll/container/input/lines/main
 @onready var ghost   : TextEdit = $content/vbox/scroll/container/input/lines/ghost
 @onready var input_container : HBoxContainer = $content/vbox/scroll/container/input
@@ -16,22 +17,27 @@ extends Control
 @onready var edge_br : Panel = $edge_br
 @onready var edge_bl : Panel = $edge_bl
 
-@export var do_boot_text : bool = true ## Whether boot text should be shown when terminal is ready.
-@export var boot_text : String = "[color=#ffffff88]kye's terminal v{{TERMINAL_VERSION}}[/color]\n\n[color=#ffffff88]///////////////////////////////////////\n///////////////////////////////////////\n///////////////////////////////////////\n///////////////////////////////////////[/color]"
-@export var minimum_size := Vector2.ZERO : set = _set_minimum_size
-@export_range(0, 10) var edge_size   : int = 4 : set = _set_edge_size
-@export_range(0, 10) var corner_size : int = 6 : set = _set_corner_size
+@export var boot_text_enabled : bool = true ## If boot text should be shown when terminal is ready.
+@export_multiline var boot_text : String = "[color=#ffffff88]running v{{TERMINAL_VERSION}} of terminal.\nchange this text in the inspector.\n\n\"help\" for help.[/color]"
+@export var minimum_size := Vector2.ZERO : set = _set_minimum_size ## Minimum size of window.
+@export_range(0, 10) var edge_size   : int = 4 : set = _set_edge_size ## Size of draggable edges.
+@export_range(0, 10) var corner_size : int = 6 : set = _set_corner_size ## Size of draggable corners.
 
-var parent_control_node : Control
+var parent_control_node : Control ## Parent. Used to constrain terminal inside.
+var character_width  : int ## Width of a single character.[br]Obtained by getting width of caret.
+var character_height : int ## Height of a single character.[br]Obtained by getting height of caret.
 
 # TODO : remember to keep zero width spaces in ghost line.
 
 func _ready() -> void:
 	parent_control_node = get_parent_control()
+	character_width  = caret.size.x / caret.text.length()
+	character_height = caret.size.y
 	
 	Logger.setVariable("TERMINAL_VERSION", "0.5")
 	
 	# invoking setters.
+	minimum_size = minimum_size
 	edge_size = edge_size
 	corner_size = corner_size
 	
@@ -46,17 +52,19 @@ func _ready() -> void:
 	_handle_hovering_for_edge(edge_br)
 	_handle_hovering_for_edge(edge_bl)
 	
-	if do_boot_text:
+	if boot_text_enabled:
 		history.parse_bbcode(Logger.formatString(boot_text))
 	
 	game.set_current_terminal(self)
-	
-	Logger.etch_raw("[rainbow freq=0.005 sat=0.8 val=1]shit[/rainbow]")
+
+func _input(event: InputEvent) -> void:
+	if input.has_focus():
+		pass
 
 #region //  INPUT.
 
 func _on_input_change() -> void:
-	input_container.custom_minimum_size.y = input.size.y + 28
+	input_container.custom_minimum_size.y = input.size.y + character_height * 2
 	input_container.size.y = input_container.custom_minimum_size.y
 
 #endregion  INPUT.

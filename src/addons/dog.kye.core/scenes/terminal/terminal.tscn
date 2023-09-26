@@ -9,8 +9,11 @@
 custom_minimum_size = Vector2(250, 250)
 layout_mode = 3
 anchors_preset = 0
+offset_right = 250.0
+offset_bottom = 250.0
 theme = ExtResource("4_5hecs")
 script = ExtResource("1_l1nv4")
+minimum_size = Vector2(250, 250)
 
 [node name="background" type="Panel" parent="."]
 layout_mode = 1
@@ -19,6 +22,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+metadata/_edit_lock_ = true
 
 [node name="content" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -31,19 +35,23 @@ theme_override_constants/margin_left = 4
 theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
+metadata/_edit_lock_ = true
 
 [node name="vbox" type="VBoxContainer" parent="content"]
 layout_mode = 2
 theme_override_constants/separation = 0
+metadata/_edit_lock_ = true
 
 [node name="titlebar" type="BoxContainer" parent="content/vbox"]
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 theme_override_constants/separation = 0
+metadata/_edit_lock_ = true
 
 [node name="text_region" type="Control" parent="content/vbox/titlebar"]
 layout_mode = 2
 size_flags_horizontal = 3
+metadata/_edit_lock_ = true
 
 [node name="title" type="Label" parent="content/vbox/titlebar/text_region"]
 layout_mode = 1
@@ -56,6 +64,7 @@ text = "TERMINAL"
 label_settings = ExtResource("2_mc30k")
 vertical_alignment = 1
 clip_text = true
+metadata/_edit_lock_ = true
 
 [node name="drag" type="Panel" parent="content/vbox/titlebar/text_region"]
 layout_mode = 1
@@ -65,12 +74,14 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = ExtResource("3_nd82i")
+metadata/_edit_lock_ = true
 
 [node name="hide_button" type="Button" parent="content/vbox/titlebar"]
 custom_minimum_size = Vector2(18, 0)
 layout_mode = 2
 flat = true
 icon_alignment = 1
+metadata/_edit_lock_ = true
 
 [node name="scroll" type="ScrollContainer" parent="content/vbox"]
 layout_mode = 2
@@ -78,6 +89,7 @@ size_flags_vertical = 3
 scroll_vertical_custom_step = 10.0
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
+metadata/_edit_lock_ = true
 
 [node name="container" type="VBoxContainer" parent="content/vbox/scroll"]
 layout_mode = 2
@@ -85,36 +97,50 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 0
 alignment = 2
+metadata/_edit_lock_ = true
 
 [node name="history" type="RichTextLabel" parent="content/vbox/scroll/container"]
 layout_mode = 2
 focus_mode = 2
 theme = ExtResource("4_5hecs")
 bbcode_enabled = true
+text = "[color=#ffffff88]kye's terminal v{{TERMINAL_VERSION}}
+
+///////////////////////////////////////
+//// [/color][rainbow freq=0.01 sat=0.8]made by kye.[/rainbow][color=#ffffff88] //// [/color][rainbow freq=0.01 sat=0.8]>:3c[/rainbow][color=#ffffff88] ///////////
+/////////// [/color][rainbow freq=0.01 sat=0.8]with love and friends.[/rainbow][color=#ffffff88] ////
+///////////////////////////////////////
+
+\"help\" for help.[/color]"
 fit_content = true
 scroll_active = false
 autowrap_mode = 1
 threaded = true
 selection_enabled = true
+metadata/_edit_lock_ = true
 
 [node name="input" type="HBoxContainer" parent="content/vbox/scroll/container"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 0
+metadata/_edit_lock_ = true
 
 [node name="caret_container" type="Control" parent="content/vbox/scroll/container/input"]
 custom_minimum_size = Vector2(12, 0)
 layout_mode = 2
+metadata/_edit_lock_ = true
 
 [node name="caret" type="Label" parent="content/vbox/scroll/container/input/caret_container"]
 layout_mode = 1
 offset_right = 6.0
 offset_bottom = 14.0
 text = ">"
+metadata/_edit_lock_ = true
 
 [node name="lines" type="Control" parent="content/vbox/scroll/container/input"]
 layout_mode = 2
 size_flags_horizontal = 3
+metadata/_edit_lock_ = true
 
 [node name="ghost" type="TextEdit" parent="content/vbox/scroll/container/input/lines"]
 layout_mode = 1
@@ -133,6 +159,7 @@ middle_mouse_paste_enabled = false
 wrap_mode = 1
 autowrap_mode = 1
 scroll_fit_content_height = true
+metadata/_edit_lock_ = true
 
 [node name="main" type="TextEdit" parent="content/vbox/scroll/container/input/lines"]
 layout_mode = 1
@@ -146,6 +173,7 @@ wrap_mode = 1
 autowrap_mode = 1
 scroll_fit_content_height = true
 caret_blink = true
+metadata/_edit_lock_ = true
 
 [node name="edge_t" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 4)
@@ -155,6 +183,7 @@ anchor_right = 1.0
 grow_horizontal = 2
 mouse_default_cursor_shape = 9
 theme_override_styles/panel = ExtResource("3_nd82i")
+metadata/_edit_lock_ = true
 
 [node name="edge_r" type="Panel" parent="."]
 custom_minimum_size = Vector2(4, 0)
@@ -167,6 +196,7 @@ grow_horizontal = 0
 grow_vertical = 2
 mouse_default_cursor_shape = 10
 theme_override_styles/panel = ExtResource("3_nd82i")
+metadata/_edit_lock_ = true
 
 [node name="edge_b" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 4)
@@ -179,6 +209,7 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_default_cursor_shape = 9
 theme_override_styles/panel = ExtResource("3_nd82i")
+metadata/_edit_lock_ = true
 
 [node name="edge_l" type="Panel" parent="."]
 custom_minimum_size = Vector2(4, 0)
@@ -188,12 +219,14 @@ anchor_bottom = 1.0
 grow_vertical = 2
 mouse_default_cursor_shape = 10
 theme_override_styles/panel = ExtResource("3_nd82i")
+metadata/_edit_lock_ = true
 
 [node name="edge_tl" type="Panel" parent="."]
 custom_minimum_size = Vector2(6, 6)
 layout_mode = 1
 mouse_default_cursor_shape = 12
 theme_override_styles/panel = ExtResource("3_nd82i")
+metadata/_edit_lock_ = true
 
 [node name="edge_tr" type="Panel" parent="."]
 custom_minimum_size = Vector2(6, 6)
@@ -204,6 +237,7 @@ anchor_right = 1.0
 grow_horizontal = 0
 mouse_default_cursor_shape = 11
 theme_override_styles/panel = ExtResource("3_nd82i")
+metadata/_edit_lock_ = true
 
 [node name="edge_br" type="Panel" parent="."]
 custom_minimum_size = Vector2(6, 6)
@@ -217,6 +251,7 @@ grow_horizontal = 0
 grow_vertical = 0
 mouse_default_cursor_shape = 12
 theme_override_styles/panel = ExtResource("3_nd82i")
+metadata/_edit_lock_ = true
 
 [node name="edge_bl" type="Panel" parent="."]
 custom_minimum_size = Vector2(6, 6)
@@ -227,3 +262,4 @@ anchor_bottom = 1.0
 grow_vertical = 0
 mouse_default_cursor_shape = 11
 theme_override_styles/panel = ExtResource("3_nd82i")
+metadata/_edit_lock_ = true
