@@ -23,6 +23,7 @@ extends Control
 
 @export var title : String = "TERMINAL" : set = _set_title ## Text to be put in the titlebar.
 @export_range(6, 48) var font_size : int = 10 : set = _set_font_size ## Font size of history and input.[br]Does not apply to titlebar.
+@export var drag_and_resize : bool = true : set = _set_drag_and_resize ## If false, hide edges.
 @export var minimum_size := Vector2i(250, 250) : set = _set_minimum_size ## Minimum size of window.
 @export_range(0, 10) var edge_size   : int = 4 : set = _set_edge_size ## Size of draggable edges.
 @export_range(0, 10) var corner_size : int = 6 : set = _set_corner_size ## Size of draggable corners.
@@ -43,6 +44,7 @@ func _ready() -> void:
 	# invoking setters.
 	title = title
 	font_size = font_size
+	drag_and_resize = drag_and_resize
 	minimum_size = minimum_size
 	edge_size = edge_size
 	corner_size = corner_size
@@ -78,6 +80,9 @@ func _input(event: InputEvent) -> void:
 				else:
 					input.insert_text_at_caret('\n')
 	
+	if not drag_and_resize:
+		return
+	
 	if event is InputEventMouseMotion:
 		if dragging:
 			_handle_drag(event)
@@ -91,10 +96,10 @@ func _input(event: InputEvent) -> void:
 				resize_size = size
 			resizing = event.button_index == MOUSE_BUTTON_LEFT and event.pressed
 		
-		elif hovering_titlebar or event.button_index == MOUSE_BUTTON_MIDDLE:
+		elif hovering_titlebar or (event.button_index == MOUSE_BUTTON_MIDDLE and mouse_over()):
 			if not dragging:
 				resize_position = position - event.position
-			dragging = (event.button_index == MOUSE_BUTTON_LEFT || event.button_index == MOUSE_BUTTON_MIDDLE) and event.pressed
+			dragging = (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_MIDDLE) and event.pressed
 
 #region //  FONT.
 
@@ -145,6 +150,7 @@ func submit_input() -> void:
 func _on_input_change() -> void:
 	pass
 
+## Updates minimum sizes for caret.
 func _update_caret_sizing() -> void:
 	caret_container.custom_minimum_size.x = caret.size.x
 	input_container.custom_minimum_size.y = input.size.y + caret.size.y * 2
@@ -167,6 +173,9 @@ var resizing          : bool = false ## If terminal is being resized.
 var dragging          : bool = false ## If terminal is being dragged.
 var resize_position   : Vector2i = Vector2i.ZERO ## When resizing, use this as reference for what position will be.[br]Also used for dragging offset.
 var resize_size       : Vector2i = Vector2i.ZERO ## When resizing, use this as reference for what size will be.[br]Also used for temp parent size in [method _constrain].
+
+func mouse_over() -> bool:
+	return Rect2(Vector2(), size).has_point(get_local_mouse_position())
 
 ## Constrains terminal to fit within screen.
 func _constrain() -> void:
@@ -255,6 +264,32 @@ func _set_title(value: String) -> void:
 func _set_font_size(value: int) -> void:
 	font_size = value
 	set_font_size(value)
+
+## Hides edges if disabled.
+func _set_drag_and_resize(value: bool) -> void:
+	drag_and_resize = value
+	
+	if not edge_t:
+		return
+	
+	if drag_and_resize:
+		edge_t.show()
+		edge_r.show()
+		edge_b.show()
+		edge_l.show()
+		edge_tl.show()
+		edge_tr.show()
+		edge_br.show()
+		edge_bl.show()
+	else:
+		edge_t.hide()
+		edge_r.hide()
+		edge_b.hide()
+		edge_l.hide()
+		edge_tl.hide()
+		edge_tr.hide()
+		edge_br.hide()
+		edge_bl.hide()
 
 ## Clamps and rounds vector between 0 and 1000.
 func _set_minimum_size(value: Vector2) -> void:
