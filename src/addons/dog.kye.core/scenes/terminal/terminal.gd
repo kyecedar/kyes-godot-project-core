@@ -1,9 +1,9 @@
 @tool
 extends Control
 
-@onready var history : RichTextLabel
-@onready var input   : TextEdit
-@onready var ghost   : TextEdit
+@onready var history : RichTextLabel = $content/vbox/scroll/container/history
+@onready var input   : TextEdit = $content/vbox/scroll/container/input/lines/main
+@onready var ghost   : TextEdit = $content/vbox/scroll/container/input/lines/ghost
 
 @onready var edge_t  : Panel = $edge_t
 @onready var edge_r  : Panel = $edge_r
@@ -14,14 +14,20 @@ extends Control
 @onready var edge_br : Panel = $edge_br
 @onready var edge_bl : Panel = $edge_bl
 
+@export var do_boot_text : bool = true ## whether boot text should be shown when terminal is operational.
+@export var boot_text : String = "v{{TERMINAL_VERSION}}"
 @export var minimum_size := Vector2.ZERO : set = _set_minimum_size
 @export_range(0, 10) var edge_size   : int = 4 : set = _set_edge_size
 @export_range(0, 10) var corner_size : int = 6 : set = _set_corner_size
 
 var parent_control_node : Control
 
+# TODO : remember to keep zero width spaces in ghost line.
+
 func _ready() -> void:
 	parent_control_node = get_parent_control()
+	
+	Logger.setVariable("TERMINAL_VERSION", "0.5")
 	
 	# invoking setters.
 	edge_size = edge_size
@@ -35,6 +41,14 @@ func _ready() -> void:
 	_handle_hovering_for_edge(edge_tr)
 	_handle_hovering_for_edge(edge_br)
 	_handle_hovering_for_edge(edge_bl)
+	
+	if do_boot_text:
+		history.parse_bbcode(Logger.formatString(boot_text))
+
+#region //  INPUT.
+
+
+#endregion  INPUT.
 
 #region // 󰁌 RESIZE.
 

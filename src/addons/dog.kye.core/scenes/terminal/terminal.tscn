@@ -11,6 +11,8 @@ layout_mode = 3
 anchors_preset = 0
 theme = ExtResource("4_5hecs")
 script = ExtResource("1_l1nv4")
+do_boot_text = null
+boot_text = null
 
 [node name="background" type="Panel" parent="."]
 layout_mode = 1
@@ -69,6 +71,7 @@ theme_override_styles/panel = ExtResource("3_nd82i")
 [node name="hide_button" type="Button" parent="content/vbox/titlebar"]
 custom_minimum_size = Vector2(18, 0)
 layout_mode = 2
+flat = true
 icon_alignment = 1
 
 [node name="scroll" type="ScrollContainer" parent="content/vbox"]
@@ -121,9 +124,8 @@ size_flags_horizontal = 3
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 18.0
+offset_bottom = 14.0
 grow_horizontal = 2
-text = "wepflosdfpoweopkfpwosdkfokwkpeoefoffef"
 editable = false
 context_menu_enabled = false
 shortcut_keys_enabled = false
@@ -140,10 +142,9 @@ scroll_fit_content_height = true
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 168.0
+offset_bottom = 14.0
 grow_horizontal = 2
 size_flags_horizontal = 3
-text = "//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"
 context_menu_enabled = false
 wrap_mode = 1
 autowrap_mode = 1
