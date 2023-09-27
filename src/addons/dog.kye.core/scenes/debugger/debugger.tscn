@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://cfxqx6hnrymrm"]
+[gd_scene load_steps=3 format=3 uid="uid://cfxqx6hnrymrm"]
 
 [ext_resource type="Script" path="res://addons/dog.kye.core/scenes/debugger/debugger.gd" id="1_p5fsi"]
+[ext_resource type="Theme" uid="uid://d4k27x482ui1n" path="res://addons/dog.kye.core/resources/themes/debugger/blurbs.theme" id="1_qm0vc"]
 
 [node name="debugger" type="Control"]
 layout_mode = 3
@@ -9,4 +10,41 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_qm0vc")
 script = ExtResource("1_p5fsi")
+
+[node name="blurbs" type="MarginContainer" parent="."]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="background" type="Panel" parent="blurbs"]
+layout_mode = 2
+
+[node name="margin" type="MarginContainer" parent="blurbs"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="text" type="RichTextLabel" parent="blurbs/margin"]
+layout_mode = 2
+bbcode_enabled = true
+text = "PLAYER
+[ul bullet=]
+position 
+[/ul]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+meta_underlined = false
+hint_underlined = false
+threaded = true
+deselect_on_focus_loss_enabled = false
+drag_and_drop_selection_enabled = false

@@ -9,6 +9,8 @@
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 1.0
+offset_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/normal_font = ExtResource("1_0j56t")
@@ -16,23 +18,30 @@ theme_override_fonts/bold_font = ExtResource("2_o6j6e")
 theme_override_fonts/italics_font = ExtResource("3_va3b0")
 theme_override_fonts/bold_italics_font = ExtResource("4_886ya")
 theme_override_fonts/mono_font = ExtResource("1_0j56t")
-theme_override_font_sizes/normal_font_size = 16
-theme_override_font_sizes/bold_font_size = 16
-theme_override_font_sizes/italics_font_size = 16
-theme_override_font_sizes/bold_italics_font_size = 16
-theme_override_font_sizes/mono_font_size = 16
+theme_override_font_sizes/normal_font_size = 10
+theme_override_font_sizes/bold_font_size = 10
+theme_override_font_sizes/italics_font_size = 10
+theme_override_font_sizes/bold_italics_font_size = 10
+theme_override_font_sizes/mono_font_size = 10
 bbcode_enabled = true
-text = "[color=#ffffff88]i love [/color]
+text = "[color=#478CBF][font_size=60][/font_size][/color] made with [url=https://godotengine.org/]godot[/url].
 
 PLAYER
 [ul bullet=]
-[color=#ffffff88]timer1[/color] 󰫄
+[color=#ffffff88]timer1[/color] [color=#ffffff88]󰫃[/color]
+[color=#ffffff88]timer2[/color] [color=#bf8f00]󰫄[/color]
+[color=#ffffff88]timer3[/color] [color=#bf8f00]󰫇[/color]
+[color=#ffffff88]timer4[/color] [color=#008fbf][/color]
 [color=#ffffff88]string[/color] this is a string.
+[ul bullet=]
+[color=#ffffff88]position [/color] (1, 2, 3)
+[color=#ffffff88]velocity [/color] (3, 2, 1)
+[/ul]
 [/ul]
 
 OTHER THING
 [ul bullet=]
-[color=#ffffff88]color1[/color] [bgcolor=#1583bf][color=#1583bf]--[/color][/bgcolor]
+[color=#ffffff88]color[/color] [color=#1583bf]░▒▓███▓▒░[/color]
 [/ul]"
 scroll_active = false
 autowrap_mode = 0

@@ -2,6 +2,8 @@
 class_name Debugger
 extends Control
 
+#region //  BLURBS.
+
 static var blurbs : Array[Blurb] = []
 
 ## Indentation of blurbs.[br]
@@ -14,3 +16,5 @@ static func createBlurb() -> Blurb:
 	var b = Blurb.new(Blurb.TYPE.STRING)
 	b.update("shit")
 	return b
+
+#endregion  BLURBS.

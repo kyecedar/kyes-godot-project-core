@@ -1,6 +1,6 @@
 @tool
 class_name Blurb
-extends RichTextLabel
+extends Node
 
 enum TYPE {
 	GROUP      =  0,
@@ -24,24 +24,4 @@ var value : Variant = null
 
 func _init(type: TYPE, value: Variant = null) -> void:
 	self.type = type
-	self.value = value
-
-func display(indentation: int) -> void:
-	var output = ""
-	
-	# TODO : parse and display value.
-	
-	# indent on left.
-	if Debugger.indent == -1:
-		pass
-	
-	# don't indent.
-	elif Debugger.indent == 0:
-		pass
-	
-	# indent on right.
-	else:
-		pass
-
-func update(value: Variant) -> void:
 	self.value = value
