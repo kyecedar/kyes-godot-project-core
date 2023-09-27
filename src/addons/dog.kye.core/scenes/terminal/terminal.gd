@@ -211,22 +211,22 @@ func _handle_drag(event: InputEvent) -> void:
 func _handle_edge_drag(event: InputEvent) -> void:
 	match hovering_edge.name:
 		'edge_t':
-			position.y = min(event.position.y, (resize_position.y + resize_size.y) - minimum_size.y)
+			position.y = max(min(event.position.y, (resize_position.y + resize_size.y) - minimum_size.y), 0)
 			size.y = max(minimum_size.y, (resize_position.y - max(position.y, 0)) + resize_size.y)
 		'edge_r':
 			size.x = max(minimum_size.x, min(event.position.x, _get_parent_size().x) - resize_position.x)
 		'edge_b':
 			size.y = max(minimum_size.y, min(event.position.y, _get_parent_size().y) - resize_position.y)
 		'edge_l':
-			position.x = min(event.position.x, (resize_position.x + resize_size.x) - minimum_size.x)
+			position.x = max(min(event.position.x, (resize_position.x + resize_size.x) - minimum_size.x), 0)
 			size.x = max(minimum_size.x, (resize_position.x - max(position.x, 0)) + resize_size.x)
 		'edge_tl':
-			position.y = min(event.position.y, (resize_position.y + resize_size.y) - minimum_size.y)
+			position.y = max(min(event.position.y, (resize_position.y + resize_size.y) - minimum_size.y), 0)
 			size.y = max(minimum_size.y, (resize_position.y - max(position.y, 0)) + resize_size.y)
-			position.x = min(event.position.x, (resize_position.x + resize_size.x) - minimum_size.x)
+			position.x = max(min(event.position.x, (resize_position.x + resize_size.x) - minimum_size.x), 0)
 			size.x = max(minimum_size.x, (resize_position.x - max(position.x, 0)) + resize_size.x)
 		'edge_tr':
-			position.y = min(event.position.y, (resize_position.y + resize_size.y) - minimum_size.y)
+			position.y = max(min(event.position.y, (resize_position.y + resize_size.y) - minimum_size.y), 0)
 			size.y = max(minimum_size.y, (resize_position.y - max(position.y, 0)) + resize_size.y)
 			size.x = max(minimum_size.x, min(event.position.x, _get_parent_size().x) - resize_position.x)
 		'edge_br':
@@ -234,7 +234,7 @@ func _handle_edge_drag(event: InputEvent) -> void:
 			size.x = max(minimum_size.x, min(event.position.x, _get_parent_size().x) - resize_position.x)
 		'edge_bl':
 			size.y = max(minimum_size.y, min(event.position.y, _get_parent_size().y) - resize_position.y)
-			position.x = min(event.position.x, (resize_position.x + resize_size.x) - minimum_size.x)
+			position.x = max(min(event.position.x, (resize_position.x + resize_size.x) - minimum_size.x), 0)
 			size.x = max(minimum_size.x, (resize_position.x - max(position.x, 0)) + resize_size.x)
 
 func _on_viewport_resize() -> void:
