@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=3 uid="uid://b2rk2fvutb80a"]
+
+[ext_resource type="FontFile" uid="uid://hygybd805hed" path="res://addons/dog.kye.core/resources/fonts/JetBrainsMonoNerdFont/JetBrainsMonoNerdFontMono-Regular.ttf" id="1_0j56t"]
+[ext_resource type="FontFile" uid="uid://dybgxl1l4fbra" path="res://addons/dog.kye.core/resources/fonts/JetBrainsMonoNerdFont/JetBrainsMonoNerdFontMono-Bold.ttf" id="2_o6j6e"]
+[ext_resource type="FontFile" uid="uid://uvskl3cd40ga" path="res://addons/dog.kye.core/resources/fonts/JetBrainsMonoNerdFont/JetBrainsMonoNerdFontMono-Italic.ttf" id="3_va3b0"]
+[ext_resource type="FontFile" uid="uid://ofbw6wfn7n8b" path="res://addons/dog.kye.core/resources/fonts/JetBrainsMonoNerdFont/JetBrainsMonoNerdFontMono-BoldItalic.ttf" id="4_886ya"]
+
+[node name="testing" type="RichTextLabel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("1_0j56t")
+theme_override_fonts/bold_font = ExtResource("2_o6j6e")
+theme_override_fonts/italics_font = ExtResource("3_va3b0")
+theme_override_fonts/bold_italics_font = ExtResource("4_886ya")
+theme_override_fonts/mono_font = ExtResource("1_0j56t")
+theme_override_font_sizes/normal_font_size = 16
+theme_override_font_sizes/bold_font_size = 16
+theme_override_font_sizes/italics_font_size = 16
+theme_override_font_sizes/bold_italics_font_size = 16
+theme_override_font_sizes/mono_font_size = 16
+bbcode_enabled = true
+text = "[color=#ffffff88]i love [/color]
+
+PLAYER
+[ul bullet=]
+[color=#ffffff88]timer1[/color] 󰫄
+[color=#ffffff88]string[/color] this is a string.
+[/ul]
+
+OTHER THING
+[ul bullet=]
+[color=#ffffff88]color1[/color] [bgcolor=#1583bf][color=#1583bf]--[/color][/bgcolor]
+[/ul]"
+scroll_active = false
+autowrap_mode = 0

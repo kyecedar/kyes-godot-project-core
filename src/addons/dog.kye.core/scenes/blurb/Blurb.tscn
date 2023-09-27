@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://bhubon2d0lpoc"]
 
-[node name="Blurb" type="Control"]
-layout_mode = 3
+[node name="Blurb" type="RichTextLabel"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
