@@ -10,26 +10,26 @@ static var YELLOW_TEXT_COLOR : String = "#FFDE66"   ## BBCode text color.
 static var GREEN_TEXT_COLOR  : String = "#FFDE66"   ## BBCode text color.
 static var BLUE_TEXT_COLOR   : String = "#328FF3"   ## BBCode text color.
 
-static var MEMBER_NAME_COLOR : String = game.LIGHT_TEXT_COLOR         ## BBCode text color for member names.
-static var NULL_COLOR        : String = game.RED_TEXT_COLOR           ## BBCode text color for null values.
-static var VECTOR_X_COLOR    : String = game.RED_TEXT_COLOR           ## BBCode text color for vector x values.
-static var VECTOR_Y_COLOR    : String = game.GREEN_TEXT_COLOR         ## BBCode text color for vector y values.
-static var VECTOR_Z_COLOR    : String = game.BLUE_TEXT_COLOR          ## BBCode text color for vector z values.
-static var TIMER_EMPTY_COLOR : String = game.LIGHT_TEXT_COLOR         ## BBCode text color for timer values when empty.
-static var TIMER_WAIT_COLOR  : String = game.YELLOW_TEXT_COLOR + "88" ## BBCode text color for timer values while waiting.
-static var TIMER_FULL_COLOR  : String = game.BLUE_TEXT_COLOR          ## BBCode text color for timer values while full/executing.
+static var MEMBER_NAME_COLOR : String = LIGHT_TEXT_COLOR         ## BBCode text color for member names.
+static var NULL_COLOR        : String = RED_TEXT_COLOR           ## BBCode text color for null values.
+static var VECTOR_X_COLOR    : String = RED_TEXT_COLOR           ## BBCode text color for vector x values.
+static var VECTOR_Y_COLOR    : String = GREEN_TEXT_COLOR         ## BBCode text color for vector y values.
+static var VECTOR_Z_COLOR    : String = BLUE_TEXT_COLOR          ## BBCode text color for vector z values.
+static var TIMER_EMPTY_COLOR : String = LIGHT_TEXT_COLOR         ## BBCode text color for timer values when empty.
+static var TIMER_WAIT_COLOR  : String = YELLOW_TEXT_COLOR + "88" ## BBCode text color for timer values while waiting.
+static var TIMER_FULL_COLOR  : String = BLUE_TEXT_COLOR          ## BBCode text color for timer values while full/executing.
 
 #endregion COLORS.
 
 static var on_ready : Callable = func(): pass
 
-static var s_entity    : System = game.create_system("ENTITY")
-static var s_component : System = game.create_system("COMPONENT")
-static var s_system    : System = game.create_system("SYSTEM")
+static var s_entity    : System = create_system("ENTITY")
+static var s_component : System = create_system("COMPONENT")
+static var s_system    : System = create_system("SYSTEM")
 
-static var s_logger    : System = game.create_system("LOGGER")
-static var s_terminal  : System = game.create_system("TERMINAL")
-static var s_blurb     : System = game.create_system("BLURB")
+static var s_logger    : System = create_system("LOGGER")
+static var s_terminal  : System = create_system("TERMINAL")
+static var s_blurb     : System = create_system("BLURB")
 
 func _ready() -> void:
 	game.order_system(s_entity)
@@ -62,7 +62,7 @@ static func order_system(system: System) -> game:
 ## Creates and adds system to registry
 static func create_system(name: String) -> System:
 	var system = System.new(name)
-	if system_registry[name]:
+	if system_registry.has(name) :
 		Logger.warn("System %s already existed. Did not replace." % [name], s_system)
 	else:
 		system_registry[name] = system

@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://cfxqx6hnrymrm"]
+[gd_scene load_steps=4 format=3 uid="uid://cfxqx6hnrymrm"]
 
 [ext_resource type="Script" path="res://addons/dog.kye.core/scenes/debugger/debugger.gd" id="1_p5fsi"]
 [ext_resource type="Theme" uid="uid://d4k27x482ui1n" path="res://addons/dog.kye.core/resources/themes/debugger/blurbs.theme" id="1_qm0vc"]
+[ext_resource type="PackedScene" uid="uid://2kb7m6ibhmg8" path="res://addons/dog.kye.core/scenes/terminal/terminal.tscn" id="3_ottem"]
 
 [node name="debugger" type="Control"]
 layout_mode = 3
@@ -12,27 +13,40 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_p5fsi")
 
-[node name="blurbs" type="Control" parent="."]
+[node name="resize_container" type="MarginContainer" parent="."]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 1
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="resize_container" type="MarginContainer" parent="blurbs"]
-layout_mode = 1
-offset_right = 54.0
-offset_bottom = 44.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme = ExtResource("1_qm0vc")
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="background" type="Panel" parent="blurbs/resize_container"]
+[node name="content" type="Control" parent="resize_container"]
 layout_mode = 2
 
-[node name="margin" type="MarginContainer" parent="blurbs/resize_container"]
+[node name="blurbs" type="MarginContainer" parent="resize_container/content"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -60.0
+offset_top = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="background" type="Panel" parent="resize_container/content/blurbs"]
+layout_mode = 2
+
+[node name="margin" type="MarginContainer" parent="resize_container/content/blurbs"]
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_constants/margin_left = 5
@@ -40,10 +54,10 @@ theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="text" type="RichTextLabel" parent="blurbs/resize_container/margin"]
+[node name="text" type="RichTextLabel" parent="resize_container/content/blurbs/margin"]
 layout_mode = 2
 bbcode_enabled = true
-text = "fuck"
+text = "fuck sak"
 fit_content = true
 scroll_active = false
 autowrap_mode = 0
@@ -52,3 +66,6 @@ hint_underlined = false
 threaded = true
 deselect_on_focus_loss_enabled = false
 drag_and_drop_selection_enabled = false
+
+[node name="terminal" parent="resize_container/content" instance=ExtResource("3_ottem")]
+layout_mode = 1
