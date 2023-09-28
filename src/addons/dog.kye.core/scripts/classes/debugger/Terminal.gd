@@ -13,9 +13,9 @@ static var ERROR_CHAR   = '' ## Character to be displayed next to an error log.
 static var FATAL_CHAR   = '' ## Character to be displayed next to a fatal log.
 
 ## Etches with newline to terminal node if [member game.terminal] exists.[br]
-## Formats text with [method Logger.formatString][br][br]
+## Formats text with [method Logger.format_string][br][br]
 ## [url=https://docs.godotengine.org/en/stable/tutorials/ui/bbcode_in_richtextlabel.html#reference]BBCode Reference[/url]
-static func etch(status: Logger.STATUS, text: String) -> void:
+static func etch(status: Logger.STATUS, text: String, system: System) -> void:
 	if not game.terminal:
 		return
 	
@@ -31,13 +31,13 @@ static func etch(status: Logger.STATUS, text: String) -> void:
 		_:
 			pass
 	
-	game.terminal.etch(Logger.formatString(text) + '\n')
+	game.terminal.etch(Logger.format_string(text) + '\n')
 
 ## Etches without newline to terminal node if [member game.terminal] exists.[br]
-## Formats text with [method Logger.formatString][br][br]
+## Formats text with [method Logger.format_string][br][br]
 ## [url=https://docs.godotengine.org/en/stable/tutorials/ui/bbcode_in_richtextlabel.html#reference]BBCode Reference[/url]
 static func etch_raw(text: String) -> void:
 	if not game.terminal:
 		return
 	
-	game.terminal.etch(Logger.formatString(text))
+	game.terminal.etch(Logger.format_string(text))

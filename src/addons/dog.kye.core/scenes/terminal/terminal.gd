@@ -40,7 +40,7 @@ var character_height : int ## Height of a single character.[br]Obtained by getti
 func _ready() -> void:
 	parent_control_node = get_parent_control()
 	
-	Logger.setVariable("TERMINAL_VERSION", "0.8")
+	Logger.set_variable("TERMINAL_VERSION", "0.8")
 	
 	# invoking setters.
 	title = title
@@ -66,7 +66,7 @@ func _ready() -> void:
 	_handle_hovering_for_edge(edge_bl)
 	
 	if boot_text_enabled:
-		history.parse_bbcode(Logger.formatString(boot_text))
+		history.parse_bbcode(Logger.format_string(boot_text))
 	
 	# TODO : find somewhere to put this : etch("\n[color=#478CBF][font_size=60][/font_size][/color] made with godot.")
 	

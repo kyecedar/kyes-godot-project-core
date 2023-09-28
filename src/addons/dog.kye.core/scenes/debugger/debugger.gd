@@ -2,19 +2,21 @@
 class_name Debugger
 extends Control
 
+## Only allow the debugger to be accessed in project's debug mode.
+@export var only_allow_in_debug : bool = true
+
+func _ready() -> void:
+	if only_allow_in_debug and not OS.is_debug_build() and not Engine.is_editor_hint():
+		queue_free()
+
 #region //  BLURBS.
 
 static var blurbs : Array[Blurb] = []
 
-## Indentation of blurbs.[br]
-## [code]-1[/code] = indent on left.[br]
-## [code]0[/code] = don't indent.[br]
-## [code]1[/code] = indent on right.
-static var indent : int = 1
+# TODO : only update bunch if blurbs is visible.
+# self, "member name"
 
-static func createBlurb() -> Blurb:
-	var b = Blurb.new(Blurb.TYPE.STRING)
-	b.update("shit")
-	return b
+static func createBunch() -> Bunch:
+	return Bunch.new()
 
 #endregion  BLURBS.

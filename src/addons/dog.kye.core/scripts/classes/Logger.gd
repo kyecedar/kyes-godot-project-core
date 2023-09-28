@@ -19,29 +19,34 @@ static var verbose : bool = false
 
 ## Format variables. See [method Logger.formatString]
 static var variables : Dictionary = {}
+static var logs : Array = []
 
 #region //  ETCH.
 
 # TODO : log to file.
 
-static func etch(status: STATUS, text: String) -> void:
-	Terminal.etch(status, text)
-	print_rich("[code]%s[/code] %s" % [_get_etch_status(status), formatString(text)])
+static func etch(status: STATUS, text: String, system: System = null) -> void:
+	Terminal.etch(status, text, system)
+	print_rich("[code]%s%s[/code] %s" % [
+		system.name + ' ' if system else '',
+		_get_etch_status(status),
+		Logger.format_string(text),
+	])
 
-static func etch_info(text: String) -> void:
-	etch(STATUS.INFO, text)
+static func info(text: String, system: System = null) -> void:
+	etch(STATUS.INFO, text, system)
 
-static func etch_success(text: String) -> void:
-	etch(STATUS.SUCCESS, text)
+static func success(text: String, system: System = null) -> void:
+	etch(STATUS.SUCCESS, text, system)
 
-static func etch_warning(text: String) -> void:
-	etch(STATUS.WARNING, text)
+static func warn(text: String, system: System = null) -> void:
+	etch(STATUS.WARNING, text, system)
 
-static func etch_error(text: String) -> void:
-	etch(STATUS.ERROR, text)
+static func error(text: String, system: System = null) -> void:
+	etch(STATUS.ERROR, text, system)
 
-static func etch_fatal(text: String) -> void:
-	etch(STATUS.FATAL, text)
+static func fatal(text: String, system: System = null) -> void:
+	etch(STATUS.FATAL, text, system)
 
 ## Etches to terminal if [member Logger.verbose] is enabled.[br][br]
 ## [url=https://docs.godotengine.org/en/stable/tutorials/ui/bbcode_in_richtextlabel.html#reference]BBCode Reference[/url]
@@ -84,14 +89,14 @@ static func _get_etch_status(status: STATUS) -> String:
 
 ## Set format variable to be replaced in format strings.[br]
 ## See [method Logger.formatString].
-static func setVariable(key: String, value: String) -> void:
+static func set_variable(key: String, value: String) -> void:
 	variables[key] = value
 
 ## Formats [code]{{}}[/code] variables to replace their values.[br]
 ## Use [method Logger.setVariable] to set variables to be replaced within text.[br][br]
 ## Use [code]"{--}"[/code] within a variable to not convert it.[br]
 ## Example : [code]"Terminal v{{TERM{--}INAL_VERSION}}"[/code]
-static func formatString(text: String) -> String:
+static func format_string(text: String) -> String:
 	var formatted = text
 	
 	for key in Logger.variables.keys():

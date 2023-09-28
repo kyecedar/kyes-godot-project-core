@@ -10,36 +10,40 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("1_qm0vc")
 script = ExtResource("1_p5fsi")
 
-[node name="blurbs" type="MarginContainer" parent="."]
+[node name="blurbs" type="Control" parent="."]
 custom_minimum_size = Vector2(60, 0)
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
+
+[node name="resize_container" type="MarginContainer" parent="blurbs"]
+layout_mode = 1
+offset_right = 54.0
+offset_bottom = 44.0
+theme = ExtResource("1_qm0vc")
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="background" type="Panel" parent="blurbs"]
+[node name="background" type="Panel" parent="blurbs/resize_container"]
 layout_mode = 2
 
-[node name="margin" type="MarginContainer" parent="blurbs"]
+[node name="margin" type="MarginContainer" parent="blurbs/resize_container"]
 layout_mode = 2
+size_flags_vertical = 0
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 5
 
-[node name="text" type="RichTextLabel" parent="blurbs/margin"]
+[node name="text" type="RichTextLabel" parent="blurbs/resize_container/margin"]
 layout_mode = 2
 bbcode_enabled = true
-text = "PLAYER
-[ul bullet=]
-position 
-[/ul]"
+text = "fuck"
 fit_content = true
 scroll_active = false
 autowrap_mode = 0
