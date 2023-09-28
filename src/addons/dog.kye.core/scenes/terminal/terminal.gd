@@ -52,6 +52,7 @@ func _ready() -> void:
 	
 	input.text_changed.connect(_on_input_change)
 	get_viewport().size_changed.connect(_on_viewport_resize)
+	get_tree().get_root().connect("size_changed", _on_viewport_resize)
 	
 	titlebar_drag.mouse_entered.connect(func(): if not dragging: hovering_titlebar = true)
 	titlebar_drag.mouse_exited.connect(func(): if not dragging: hovering_titlebar = false)
@@ -176,7 +177,7 @@ var hovering_titlebar : bool = false ## If user is hovering over titlebar.
 var hovering_edge     : Panel ## Panel the user is hovering over.
 var resizing          : bool = false ## If terminal is being resized.
 var dragging          : bool = false ## If terminal is being dragged.
-var resize_position   : Vector2i = Vector2i.ZERO ## When resizing, use this as reference for what position will be.[br]Also used for dragging offset.
+var resize_position   : Vector2i = Vector2i.ZERO ## When resizing, use this as reference for what position will be.[br]Also used for dragging offset and temp window size in [method _constrain].
 var resize_size       : Vector2i = Vector2i.ZERO ## When resizing, use this as reference for what size will be.[br]Also used for temp parent size in [method _constrain].
 
 func mouse_over() -> bool:
@@ -184,6 +185,7 @@ func mouse_over() -> bool:
 
 ## Constrains terminal to fit within screen.
 func _constrain() -> void:
+	resize_position = DisplayServer.window_get_size()
 	resize_size = _get_parent_size()
 	
 	# keep minimum size.
@@ -244,8 +246,8 @@ func _on_viewport_resize() -> void:
 	hovering_titlebar = false
 	hovering_edge = null
 	
-	# constrain to fit parent.
-	_constrain()
+	# constrain to fit parent. call deferred so that the parent sizes update before doing calculations.
+	_constrain.call_deferred()
 
 #endregion 󰁌 RESIZE & DRAG.
 

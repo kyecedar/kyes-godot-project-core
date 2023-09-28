@@ -31,6 +31,7 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 
 [node name="blurbs" type="MarginContainer" parent="resize_container/content"]
+visible = false
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 1
 anchors_preset = 3
@@ -57,7 +58,6 @@ theme_override_constants/margin_bottom = 5
 [node name="text" type="RichTextLabel" parent="resize_container/content/blurbs/margin"]
 layout_mode = 2
 bbcode_enabled = true
-text = "fuck sak"
 fit_content = true
 scroll_active = false
 autowrap_mode = 0
