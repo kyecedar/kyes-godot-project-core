@@ -25,39 +25,38 @@ static var logs : Array = []
 
 # TODO : log to file.
 
-static func etch(status: STATUS, text: String, system: System = null) -> void:
+static func etch(status: STATUS, text: String, system: String = '') -> void:
 	Terminal.etch(status, text, system)
-	print_rich("[code]%s%s[/code] %s" % [
-		system.name + ' ' if system else '',
-		_get_etch_status(status),
+	print_rich("%s %s" % [
+		_get_etch_color_status(status, system),
 		Logger.format_string(text),
 	])
 
-static func info(text: String, system: System = null) -> void:
+static func info(text: String, system: String = '') -> void:
 	etch(STATUS.INFO, text, system)
 
-static func success(text: String, system: System = null) -> void:
+static func success(text: String, system: String = '') -> void:
 	etch(STATUS.SUCCESS, text, system)
 
-static func warn(text: String, system: System = null) -> void:
+static func warn(text: String, system: String = '') -> void:
 	etch(STATUS.WARNING, text, system)
 
-static func error(text: String, system: System = null) -> void:
+static func error(text: String, system: String = '') -> void:
 	etch(STATUS.ERROR, text, system)
 
-static func fatal(text: String, system: System = null) -> void:
+static func fatal(text: String, system: String = '') -> void:
 	etch(STATUS.FATAL, text, system)
 
 ## Etches to terminal if [member Logger.verbose] is enabled.[br][br]
 ## [url=https://docs.godotengine.org/en/stable/tutorials/ui/bbcode_in_richtextlabel.html#reference]BBCode Reference[/url]
 static func etch_verbose(text: String) -> void:
 	if verbose:
-		etch(STATUS.INFO, text + '\n')
+		etch(STATUS.INFO, '\n' + text)
 
 ## Etches to terminal with newline.[br][br]
 ## [url=https://docs.godotengine.org/en/stable/tutorials/ui/bbcode_in_richtextlabel.html#reference]BBCode Reference[/url]
 static func etch_rich(text: String) -> void:
-	Terminal.etch_raw(text + '\n')
+	Terminal.etch_raw('\n' + text)
 	print_rich(text)
 
 ## Etches to terminal without newline.[br]
@@ -66,6 +65,9 @@ static func etch_rich(text: String) -> void:
 static func etch_raw(text: String) -> void:
 	Terminal.etch_raw(text)
 	print_rich(text)
+
+static func _get_etch_color_status(status: STATUS, system: String = '') -> String:
+	return "[color=" + (Debugger[_get_etch_status(status) + "_COLOR"]) + ']' + (system + ' ' if system else '') + _get_etch_status(status) + "[/color]"
 
 ## Get string of given status.[br]
 ## Used for logging to editor or file.[br]

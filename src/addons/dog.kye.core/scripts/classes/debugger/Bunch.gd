@@ -2,11 +2,15 @@
 class_name Bunch
 extends Node
 
-var bingus : String
+func _init(name: String) -> void:
+	self.name = name
 
-static var assemble : Callable = func(blurbs: Array[Blurb]) -> void:
-	pass
+#region //  BLURBS.
+
+var blurbs : Array[Blurb] = []
 
 func addBlurb() -> Bunch:
 	
 	return self
+
+#endregion  BLURBS.

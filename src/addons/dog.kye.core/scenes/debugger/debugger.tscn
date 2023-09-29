@@ -69,3 +69,9 @@ drag_and_drop_selection_enabled = false
 
 [node name="terminal" parent="resize_container/content" instance=ExtResource("3_ottem")]
 layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -250.0
+offset_bottom = 0.0
+grow_vertical = 0
