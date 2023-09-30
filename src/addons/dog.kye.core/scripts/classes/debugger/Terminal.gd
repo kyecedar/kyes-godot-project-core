@@ -13,10 +13,11 @@ static var command_registry : Dictionary = {}
 
 static func execute(base_command: String, parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	if not command_registry.has(base_command):
-		return _invalid_command(base_command)
+		return _invalid_command(PackedStringArray([base_command]))
 	
-	var subcommand : TerminalCommand = command_registry[base_command]
-	var optional : TerminalCommandOptional
+	var command_path  : PackedStringArray = [base_command]
+	var subcommand    : TerminalCommand = command_registry[base_command]
+	var optional      : TerminalCommandOptional
 	var is_base       : bool = true
 	var is_subcommand : bool = false
 	var is_help_flag  : bool = false
@@ -29,6 +30,7 @@ static func execute(base_command: String, parsed_optionals: Array[TerminalComman
 		optional = parsed_optionals.pop_front()
 		
 		is_subcommand = subcommand.subcommands.has(optional.name)
+		is_help_flag  = optional.name == "-h" or optional.name == "--help"
 		is_flag       = subcommand.flags.has(optional.name)
 		is_ghost      = subcommand.ghosts.has(optional.name)
 		
@@ -36,21 +38,18 @@ static func execute(base_command: String, parsed_optionals: Array[TerminalComman
 			is_subcommand = false if optional.value else true
 			is_ghost = not is_subcommand
 		
-		if is_ghost:
-			# check if valid type.
-			if not typeof(optional.value) == subcommand.ghosts[optional.name]:
-				return _invalid_value_type(
-					optional.name,
-					typeof(optional.value),
-					subcommand.ghosts[optional.name]
-				)
+		if is_help_flag:
+			return _get_help(subcommand)
 			
-			options[optional.name] = optional.value
-			
+		if is_subcommand:
+			subcommand = subcommand.subcommands[optional.name]
+			command_path.append(optional.name)
+		
 		elif is_flag:
 			# check if valid type.
 			if not typeof(optional.value) == subcommand.flags[optional.name]:
 				return _invalid_value_type(
+					command_path,
 					optional.name,
 					typeof(optional.value),
 					subcommand.flags[optional.name]
@@ -58,37 +57,47 @@ static func execute(base_command: String, parsed_optionals: Array[TerminalComman
 			
 			options[optional.name] = optional.value
 			
-		elif is_subcommand:
-			subcommand = subcommand.subcommands[optional.name]
-			is_base = false
+		elif is_ghost:
+			# check if valid type.
+			if not typeof(optional.value) == subcommand.ghosts[optional.name]:
+				return _invalid_value_type(
+					command_path,
+					optional.name,
+					typeof(optional.value),
+					subcommand.ghosts[optional.name]
+				)
+			
+			options[optional.name] = optional.value
 		
 		else:
-			return _invalid_subcommand(base_command, optional.name)
+			return _invalid_command(command_path)
 	
 	if not subcommand.has_method("execute"):
 		if subcommand.execute is Callable:
 			subcommand.execute.call_deferred(options)
 	else:
-		_no_execution_method(base_command, subcommand.name if not is_base else '')
+		_no_execution_method(command_path)
 
-static func _invalid_command(command_name: String) -> void:
-	return Logger.error("Invalid command \"%s\"." % command_name, SYSTEM)
+static func _get_help(command: TerminalCommand = null) -> void:
+	if not command:
+		pass # TODO : print all commands and their descriptions.
+	# TODO : get help for command.
+	#      loop through command's flags and ghosts first, then go to subcommands.
+	pass
 
-static func _invalid_subcommand(base_command: String, sub_command: String) -> void:
-	return Logger.error("Invalid subcommand \"%s\" of \"%s\"." % [sub_command, base_command], SYSTEM)
+static func _invalid_command(command_path: PackedStringArray) -> void:
+	return Logger.error("Invalid command \"%s\"." % ' '.join(command_path), SYSTEM)
 
-static func _invalid_value_type(optional_name: String, optional_expected_type: int, optional_recieved_type: int) -> void:
-	return Logger.error("Invalid value of %s. Expected type of %s, instead got type of %s." % [
+static func _invalid_value_type(command_path: PackedStringArray, optional_name: String, optional_expected_type: int, optional_recieved_type: int) -> void:
+	return Logger.error("Invalid value of %s in command \"%s\". Expected type of %s, instead got type of %s." % [
 		optional_name,
+		' '.join(command_path),
 		game.get_string_type(optional_expected_type),
 		game.get_string_type(optional_recieved_type),
 	], SYSTEM)
 
-static func _no_execution_method(base_command: String, sub_command: String = '') -> void:
-	if not sub_command:
-		return Logger.error("Command \"%s\" in registry, but no execution method provided." % base_command, SYSTEM)
-	
-	return Logger.error("Subcommand \"%s\" of \"%s\" in registry, but no execution method provided." % [sub_command, base_command], SYSTEM)
+static func _no_execution_method(command_path: PackedStringArray) -> void:
+	return Logger.error("Command \"%s\" in registry, but no execution method provided." % ' '.join(command_path), SYSTEM)
 
 ## Creates and adds command to registry if command under given name doesn't exist.[br]
 ## Returns null if command already exists.

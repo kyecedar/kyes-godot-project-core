@@ -69,8 +69,6 @@ func _ready() -> void:
 	if boot_text_enabled:
 		history.parse_bbcode(Logger.format_string(boot_text))
 	
-	# TODO : find somewhere to put this : etch("\n[color=#478CBF][font_size=60][/font_size][/color] made with godot.")
-	
 	game.set_current_terminal(self)
 
 func _input(event: InputEvent) -> void:

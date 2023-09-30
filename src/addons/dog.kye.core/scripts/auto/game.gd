@@ -10,6 +10,8 @@ func _ready() -> void:
 	Logger.error("this is what an error looks like.",      "GAME")
 	Logger.fatal("this is what a fatal error looks like.", "GAME")
 	
+	# TODO : find somewhere to put this : etch("\n[color=#478CBF][font_size=60][/font_size][/color] made with godot.")
+	
 	print(typeof(Logger))
 	
 	# register terminal commands.
