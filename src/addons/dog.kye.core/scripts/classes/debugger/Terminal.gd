@@ -2,9 +2,109 @@
 class_name Terminal
 extends Control
 
+## System name of Terminal system. Used in logger.
+const SYSTEM : String = "TERMINAL"
+
 ## Registry of all commands.[br]
 ## See TODO : make command registry functions.
 static var command_registry : Dictionary = {}
+
+#region //  COMMANDS.
+
+static func execute(base_command: String, parsed_optionals: Array[TerminalCommandOptional]) -> void:
+	if not command_registry.has(base_command):
+		return _invalid_command(base_command)
+	
+	var subcommand : TerminalCommand = command_registry[base_command]
+	var optional : TerminalCommandOptional
+	var is_base       : bool = true
+	var is_subcommand : bool = false
+	var is_help_flag  : bool = false
+	var is_flag       : bool = false
+	var is_ghost      : bool = false
+	
+	var options : Dictionary = {}
+	
+	while parsed_optionals.size():
+		optional = parsed_optionals.pop_front()
+		
+		is_subcommand = subcommand.subcommands.has(optional.name)
+		is_flag       = subcommand.flags.has(optional.name)
+		is_ghost      = subcommand.ghosts.has(optional.name)
+		
+		if is_subcommand and is_ghost:
+			is_subcommand = false if optional.value else true
+			is_ghost = not is_subcommand
+		
+		if is_ghost:
+			# check if valid type.
+			if not typeof(optional.value) == subcommand.ghosts[optional.name]:
+				return _invalid_value_type(
+					optional.name,
+					typeof(optional.value),
+					subcommand.ghosts[optional.name]
+				)
+			
+			options[optional.name] = optional.value
+			
+		elif is_flag:
+			# check if valid type.
+			if not typeof(optional.value) == subcommand.flags[optional.name]:
+				return _invalid_value_type(
+					optional.name,
+					typeof(optional.value),
+					subcommand.flags[optional.name]
+				)
+			
+			options[optional.name] = optional.value
+			
+		elif is_subcommand:
+			subcommand = subcommand.subcommands[optional.name]
+			is_base = false
+		
+		else:
+			return _invalid_subcommand(base_command, optional.name)
+	
+	if not subcommand.has_method("execute"):
+		if subcommand.execute is Callable:
+			subcommand.execute.call_deferred(options)
+	else:
+		_no_execution_method(base_command, subcommand.name if not is_base else '')
+
+static func _invalid_command(command_name: String) -> void:
+	return Logger.error("Invalid command \"%s\"." % command_name, SYSTEM)
+
+static func _invalid_subcommand(base_command: String, sub_command: String) -> void:
+	return Logger.error("Invalid subcommand \"%s\" of \"%s\"." % [sub_command, base_command], SYSTEM)
+
+static func _invalid_value_type(optional_name: String, optional_expected_type: int, optional_recieved_type: int) -> void:
+	return Logger.error("Invalid value of %s. Expected type of %s, instead got type of %s." % [
+		optional_name,
+		game.get_string_type(optional_expected_type),
+		game.get_string_type(optional_recieved_type),
+	], SYSTEM)
+
+static func _no_execution_method(base_command: String, sub_command: String = '') -> void:
+	if not sub_command:
+		return Logger.error("Command \"%s\" in registry, but no execution method provided." % base_command, SYSTEM)
+	
+	return Logger.error("Subcommand \"%s\" of \"%s\" in registry, but no execution method provided." % [sub_command, base_command], SYSTEM)
+
+## Creates and adds command to registry if command under given name doesn't exist.[br]
+## Returns null if command already exists.
+static func add_command(name: String) -> TerminalCommand:
+	# command already exists, return null.
+	if command_registry.has(name):
+		Logger.error("Command under \"%s\" already registered. Command not created." % name, SYSTEM)
+		return null
+	
+	# create and return command.
+	command_registry[name] = TerminalCommand.new(name)
+	return command_registry[name]
+
+#endregion  COMMANDS.
+
+#region //  LOGGING.
 
 static var INFO_CHAR    = '' ## Character to be displayed next to an informational log.
 static var SUCCESS_CHAR = '' ## Character to be displayed next to a successful log.
@@ -50,3 +150,5 @@ static func etch_raw(text: String) -> void:
 		return
 	
 	game.terminal.etch(Logger.format_string(text))
+
+#endregion  LOGGING.
