@@ -12,8 +12,6 @@ func _ready() -> void:
 	
 	# TODO : find somewhere to put this : etch("\n[color=#478CBF][font_size=60][/font_size][/color] made with godot.")
 	
-	print(typeof(Logger))
-	
 	# register terminal commands.
 	var command_test = Terminal.add_command("test").add_flag("--shit")
 	command_test.add_command("bingus").add_flag("--bingusalso").set_execute(func(options: Dictionary):
@@ -23,7 +21,7 @@ func _ready() -> void:
 	
 	Terminal.execute("test", [
 		TerminalCommandOptional.new("bingus"),
-		TerminalCommandOptional.new("--bingusalso")
+		TerminalCommandOptional.new("--help")
 	])
 	
 	if on_ready:

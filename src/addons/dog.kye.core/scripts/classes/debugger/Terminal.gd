@@ -9,7 +9,82 @@ const SYSTEM : String = "TERMINAL"
 ## See TODO : make command registry functions.
 static var command_registry : Dictionary = {}
 
+static var regex_command    : RegEx = RegEx.new()
+static var regex_string     : RegEx = RegEx.new()
+static var regex_flag       : RegEx = RegEx.new()
+static var regex_number     : RegEx = RegEx.new()
+static var regex_int        : RegEx = RegEx.new()
+static var regex_bool       : RegEx = RegEx.new()
+static var regex_true       : RegEx = RegEx.new()
+static var regex_whitespace : RegEx = RegEx.new()
+
 #region //  COMMANDS.
+
+## Returns array that looks like[br]
+## [ [[member TerminalCommandOptional.TYPE_COMMAND], "set"], [[member TerminalCommandOptional.TYPE_COMMAND], "playername"], [TYPE_STRING, "Billy"] ]
+static func parse_command(text: String) -> Array[Array]:
+	_register_regex()
+	
+	var strings = regex_string.search_all(text)
+	
+	var split_text : PackedStringArray = text.split(" ")
+	var parsed     : Array[Variant] = []
+	var command    : Array[TerminalCommandParsed] = []
+	
+	# loop through all the string positions.
+	# "command "string" subcommand -flag "string"
+	if strings:
+		var last_index : int = strings.size() - 1
+		var last_position : int = 0
+		var string_match: RegExMatch
+		for i in strings.size():
+			string_match = strings[i]
+			
+			# command --flag "string" 0.0 "another string" bingus "bongus"
+			
+			# i == 1 : [ "command --flag ", [TYPE_STRING, "string"] ]
+			# i == 2 : [ " 0.0 ", [TYPE_STRING, "another string"] ]
+			# i == 3 : [ " bingus ", [TYPE_STRING, "bongus"], "" ]
+			
+			parsed.push_back(text.substr(last_position, string_match.get_start() - last_position)) # get from last position to before string starts.
+			parsed.push_back(TerminalCommandParsed.new(TYPE_STRING, string_match.get_string().substr(1, string_match.get_string().length() - 2))) # get text inside quotations.
+			
+			last_position = string_match.get_end()
+			
+			if i == last_index:
+				if text.substr(string_match.get_end()):
+					parsed.push_back(text.substr(string_match.get_end())) # get remaining text, from end of match to end of text.
+	else:
+		parsed = [text]
+	
+	var n : Variant
+	
+	# loop and store it all in "command".
+	while parsed.size():
+		n = parsed.pop_front()
+		
+		# if already parsed out, send it to the gay zone.
+		if not n is String:
+			command.push_back(n)
+			continue
+		
+		split_text = n.split(' ', false)
+		
+		for s in split_text:
+			if regex_command.search(s):
+				command.push_back([])
+	
+	return command
+
+static func _register_regex() -> void:
+	regex_command.compile('^[A-Za-z]+$')
+	regex_string.compile('(?<!\\\\)"([\\S\\s]*?)(?<!\\\\)"')
+	regex_flag.compile('^--?[A-Za-z]+$')
+	regex_number.compile('^\\d+(\\.\\d*)?$')
+	regex_int.compile('^\\d+(?!(.\\d*))')
+	regex_bool.compile('^((true|false)|((enable|disable)d?))$')
+	regex_true.compile('^(true|enabled?)$')
+	regex_whitespace.compile('[^\\s​⠀]')
 
 static func execute(base_command: String, parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	if not command_registry.has(base_command):
@@ -80,7 +155,40 @@ static func execute(base_command: String, parsed_optionals: Array[TerminalComman
 
 static func _get_help(command: TerminalCommand = null) -> void:
 	if not command:
-		pass # TODO : print all commands and their descriptions.
+		# TODO : print all commands and their descriptions.
+		#      loop through command_registry keys.
+		#      get descriptions and print them side-by-side.
+		
+		var first : bool = true
+		
+		# recurse through all commands in registry if no specific command given.
+		for c: TerminalCommand in command_registry:
+			if not first:
+				Terminal.etch_raw('\n')
+			first = false
+			_get_help(c)
+	
+	var first_comma : bool
+	
+	# print name.
+	Terminal.etch_raw("\n[color=%s]%s[/color]" % [ Debugger.INFO_COLOR, command.name ])
+	
+	# print subcommands
+	if command.subcommands:
+		first_comma = true
+		Terminal.etch_raw(" [color=%s]" % Debugger.MEMBER_NAME_COLOR)
+		for subcommand in command.subcommands:
+			if not first_comma:
+				Terminal.etch_raw(", ")
+			first_comma = false
+			Terminal.etch_raw(subcommand.name)
+		Terminal.etch_raw("[/color]")
+	
+	
+	
+	# print flags
+	# print ghosts
+	# print description
 	# TODO : get help for command.
 	#      loop through command's flags and ghosts first, then go to subcommands.
 	pass
@@ -128,7 +236,10 @@ static var log_queue : Array[Array] = []
 static func _handle_missed_logs() -> void:
 	while log_queue.size():
 		var log = log_queue.pop_front()
-		etch(log[0], log[1], log[2])
+		if typeof(log) == TYPE_ARRAY:
+			etch(log[0], log[1], log[2])
+			continue
+		etch_raw(log)
 
 ## Etches with newline to terminal node if [member game.terminal] exists.[br]
 ## Formats text with [method Logger.format_string][br][br]
@@ -156,6 +267,7 @@ static func etch(status: Logger.STATUS, text: String, system: String = '') -> vo
 ## [url=https://docs.godotengine.org/en/stable/tutorials/ui/bbcode_in_richtextlabel.html#reference]BBCode Reference[/url]
 static func etch_raw(text: String) -> void:
 	if not game.terminal:
+		log_queue.push_back(text)
 		return
 	
 	game.terminal.etch(Logger.format_string(text))
