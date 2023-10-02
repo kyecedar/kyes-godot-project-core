@@ -49,6 +49,9 @@ func _ready() -> void:
 	command_get.add_command("temp").set_execute(func(options: Dictionary) -> void:
 		Logger.info(str(game.temp))
 	)
+	command_get.add_command("termsize").set_execute(func(options: Dictionary) -> void:
+		Logger.info("x%s y%s" % [str(terminal.size.x), str(terminal.size.y)])
+	)
 	
 	#var command_test = Terminal.add_command("test").add_flag("--shit")
 	#command_test.add_command("bingus").add_flag("--bingusalso").set_execute(func(options: Dictionary):

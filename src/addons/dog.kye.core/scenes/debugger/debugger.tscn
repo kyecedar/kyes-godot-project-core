@@ -69,4 +69,4 @@ drag_and_drop_selection_enabled = false
 
 [node name="terminal" parent="resize_container/content" instance=ExtResource("3_ottem")]
 layout_mode = 1
-offset_right = 325.0
+offset_right = 375.0
