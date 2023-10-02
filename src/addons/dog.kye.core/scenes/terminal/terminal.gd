@@ -43,7 +43,7 @@ var character_height    : int ## Height of a single character.[br]Obtained by ge
 func _ready() -> void:
 	parent_control_node = get_parent_control()
 	
-	Logger.set_variable("TERMINAL_VERSION", "0.8")
+	Logger.set_variable("TERMINAL_VERSION", "0.9")
 	
 	# invoking setters.
 	title = title
