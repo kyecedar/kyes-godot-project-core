@@ -126,7 +126,7 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	
 	while parsed_optionals.size():
 		# TODO : resolve unreasolved assign here.
-		optional = parsed_optionals.pop_front()
+		optional = parsed_optionals.pop_front() as TerminalCommandOptional
 		
 		command_path.append(str(optional.value))
 		
