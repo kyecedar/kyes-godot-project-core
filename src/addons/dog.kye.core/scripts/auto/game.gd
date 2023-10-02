@@ -3,6 +3,8 @@ extends Node
 
 static var on_ready : Callable = (func() -> void: pass)
 
+static var temp : int = 0
+
 func _ready() -> void:
 	Logger.info("this is what info looks like.",           "GAME")
 	Logger.success("this is what a success looks like.",   "GAME")
@@ -13,13 +15,39 @@ func _ready() -> void:
 	# TODO : find somewhere to put this : etch("\n[color=#478CBF][font_size=60][/font_size][/color] made with godot.")
 	
 	# register terminal commands.
-	var command_help = Terminal.add_command("help").set_execute(func(_options: Dictionary): Terminal.get_help())
-	var command_echo = Terminal.add_command("echo").add_ghost("string", TYPE_STRING, "String to echo to terminal.").set_execute(func(options: Dictionary):
+	var command_help = Terminal.add_command("help")
+	command_help.set_execute(func(_options: Dictionary) -> void: Terminal.get_help())
+	
+	var command_clear = Terminal.add_command("clear").set_execute(func(_options: Dictionary) -> void:
+		terminal.history.clear()
+	)
+	
+	var command_echo = Terminal.add_command("echo")
+	command_echo.add_ghost("string", TYPE_STRING, "String to echo to terminal.")
+	command_echo.set_execute(func(options: Dictionary):
 		if not options.has("string"):
 			Terminal.get_help(["echo"])
 			return
 		
 		Logger.info(options.string)
+	)
+	
+	var command_set = Terminal.add_command("set")
+	command_set.add_command("commandHistory")
+	command_set.add_command("temp").add_ghost("value", TYPE_INT).set_execute(func(options: Dictionary) -> void:
+		if not options.has("value"):
+			Terminal.get_help(["set", "temp"])
+			return
+		
+		game.temp = options.value
+	)
+	command_set.set_execute(func(_options: Dictionary) -> void:
+		pass
+	)
+	
+	var command_get = Terminal.add_command("get")
+	command_get.add_command("temp").set_execute(func(options: Dictionary) -> void:
+		Logger.info(str(game.temp))
 	)
 	
 	#var command_test = Terminal.add_command("test").add_flag("--shit")

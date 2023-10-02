@@ -169,7 +169,7 @@ func set_font_size(size: int) -> void:
 func submit_input() -> void:
 	# log and print command.
 	if log_input_on_submit:
-		var split_input : PackedStringArray = input.text.split('\n')
+		var split_input : PackedStringArray = input.text.split("\n")
 		var display_input : String = caret.text
 		
 		if split_input.size() == 0:
@@ -179,16 +179,16 @@ func submit_input() -> void:
 		split_input.remove_at(0)
 		
 		for line in split_input:
-			display_input += '\n' + ' '.repeat(caret.text.length()) + line
+			display_input += "\n" + " ".repeat(caret.text.length()) + line
 		
-		history.add_text('\n' + display_input)
+		history.add_text(("\n" if history.get_parsed_text() else "") + display_input)
 		print(display_input)
 	
 	# TODO : send command to be parsed.
 	if input.text:
 		command_history.push_front(input.text)
+		command_index = -1
 		Terminal.execute(Terminal.parse_command(input.text))
-		
 		input.text = ""
 
 func _on_input_change() -> void:

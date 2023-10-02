@@ -132,7 +132,7 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 		
 		
 		is_subcommand = subcommand.subcommands.has(optional.value)
-		is_help_flag  = optional.value == "-h" or optional.value == "--help"
+		is_help_flag  = str(optional.value) == "-h" or str(optional.value) == "--help"
 		is_flag       = subcommand.flags.has(optional.value)
 		
 		
