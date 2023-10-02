@@ -114,7 +114,7 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	
 	var command_path  : PackedStringArray = [base]
 	var subcommand    : TerminalCommand = command_registry[base]
-	var optional      : TerminalCommandOptional
+	var optional      : TerminalCommandOptional = null
 	var is_subcommand : bool = false
 	var is_help_flag  : bool = false
 	var is_flag       : bool = false
@@ -125,6 +125,7 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	var options : Dictionary = {}
 	
 	while parsed_optionals.size():
+		# TODO : resolve unreasolved assign here.
 		optional = parsed_optionals.pop_front()
 		
 		command_path.append(str(optional.value))
