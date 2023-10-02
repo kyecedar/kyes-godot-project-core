@@ -31,7 +31,7 @@ extends Control
 @export_multiline var boot_text : String = "[color=#ffffff88]running v{{TERMINAL_VERSION}} of terminal.\nchange this text in the inspector.\n\n\"help\" for help.[/color]"
 @export var log_input_on_submit : bool = true ## If the command should be printed and logged when submitting.
 
-var command_history     : PackedStringArray = []
+var command_history     : Array[String] = []
 var command_index       : int = -1 ## Points to a command in the command history.[br]Changes when user navigates through command history with arrow keys.
 var command_temp        : String = "" ## When user navigates from the command they're typing, store it here and recover it when index reaches -1 again.
 var parent_control_node : Control ## Parent. Used to constrain terminal inside.
@@ -90,11 +90,13 @@ func _input(event: InputEvent) -> void:
 				
 				# test if caret is at top of input.
 				if not input.get_caret_line(0):
-					# TODO : increment through command history.
+					# increment through command history.
 					if command_index == -1:
 						command_temp = input.text
 					
-					command_index = min(len(command_history) - 1, command_index + 1)
+					# TODO : set caret at end.
+					
+					command_index = min(command_history.size() - 1, command_index + 1)
 					print(command_index)
 					input.text = command_history[command_index]
 				pass
@@ -103,14 +105,16 @@ func _input(event: InputEvent) -> void:
 				if not command_history:
 					return
 				
+				# test if caret is at bottom of input.
 				if input.get_caret_line(0) == input.get_line_count() - 1:
 					command_index = max(command_index - 1, -1)
+					
+					# TODO : set caret at end.
 					
 					if command_index > -1:
 						input.text = command_history[command_index]
 					else:
 						input.text = command_temp
-				# TODO : test if caret is at bottom of input.
 				pass
 	
 	if not drag_and_resize:
@@ -182,7 +186,7 @@ func submit_input() -> void:
 	
 	# TODO : send command to be parsed.
 	if input.text:
-		command_history.append(input.text)
+		command_history.push_front(input.text)
 		Terminal.execute(Terminal.parse_command(input.text))
 		
 		input.text = ""
