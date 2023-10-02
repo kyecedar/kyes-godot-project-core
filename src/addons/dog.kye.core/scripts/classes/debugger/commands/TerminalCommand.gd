@@ -7,8 +7,8 @@ const SYSTEM : String = "COMMAND"
 var description : String = "No description."
 
 var subcommands : Dictionary = {}
-var flags       : Dictionary = {} ## Like "-f" or "--help".
-var ghosts      : Dictionary = {} ## Ghost values.
+var flags       : Dictionary = {} ## Like [code]"--gravity": [TYPE_FLOAT, "Description."][/code]
+var ghosts      : Dictionary = {} ## Like [code]"filepath": [TYPE_STRING, "Description."][/code]
 
 ## Function that is called when command is executed.[br]
 ## Flags can look like [code]--help[/code], [code]-f: false[/code], [code]-g: 9.8[/code]. Use [method Dictionary.has] to check if flag exists.[br]
@@ -41,7 +41,7 @@ func add_flag(name: String, type: int = TYPE_NIL, description: String = "No desc
 		Logger.error("Flag under \"%s\" already registered. Flag not created." % name, SYSTEM)
 		return self
 	
-	flags[name] = type
+	flags[name] = [type, description]
 	return self
 
 ## Creates new ghost value if ghost under given name doesn't exist.[br]
@@ -51,7 +51,7 @@ func add_ghost(name: String, type: int, description: String = "No description.")
 		Logger.error("Ghost under \"%s\" already registered. Ghost not created." % name, SYSTEM)
 		return self
 	
-	ghosts[name] = type
+	ghosts[name] = [type, description]
 	return self
 
 ## Sets the execution function of command.[br]

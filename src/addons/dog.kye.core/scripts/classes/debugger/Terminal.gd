@@ -20,16 +20,18 @@ static var regex_whitespace : RegEx = RegEx.new()
 
 #region //  COMMANDS.
 
+#static func get_optionals(text: )
+
 ## Returns array that looks like[br]
 ## [ [[member TerminalCommandOptional.TYPE_COMMAND], "set"], [[member TerminalCommandOptional.TYPE_COMMAND], "playername"], [TYPE_STRING, "Billy"] ]
-static func parse_command(text: String) -> Array[Array]:
+static func parse_command(text: String) -> Array[TerminalCommandOptional]:
 	_register_regex()
 	
 	var strings = regex_string.search_all(text)
 	
 	var split_text : PackedStringArray = text.split(" ")
 	var parsed     : Array[Variant] = []
-	var command    : Array[TerminalCommandParsed] = []
+	var command    : Array[TerminalCommandOptional] = []
 	
 	# loop through all the string positions.
 	# "command "string" subcommand -flag "string"
@@ -47,7 +49,7 @@ static func parse_command(text: String) -> Array[Array]:
 			# i == 3 : [ " bingus ", [TYPE_STRING, "bongus"], "" ]
 			
 			parsed.push_back(text.substr(last_position, string_match.get_start() - last_position)) # get from last position to before string starts.
-			parsed.push_back(TerminalCommandParsed.new(TYPE_STRING, string_match.get_string().substr(1, string_match.get_string().length() - 2))) # get text inside quotations.
+			parsed.push_back(TerminalCommandOptional.new(TYPE_STRING, string_match.get_string().substr(1, string_match.get_string().length() - 2))) # get text inside quotations.
 			
 			last_position = string_match.get_end()
 			
@@ -72,7 +74,20 @@ static func parse_command(text: String) -> Array[Array]:
 		
 		for s in split_text:
 			if regex_command.search(s):
-				command.push_back([])
+				command.push_back(TerminalCommandOptional.new(
+					TerminalCommandOptional.TYPE_COMMAND, s))
+			elif regex_flag.search(s):
+				command.push_back(TerminalCommandOptional.new(
+					TerminalCommandOptional.TYPE_FLAG, s))
+			elif regex_number.search(s):
+				if regex_int.search(s):
+					command.push_back(TerminalCommandOptional.new(TYPE_INT, int(s)))
+				else:
+					command.push_back(TerminalCommandOptional.new(TYPE_FLOAT, float(s)))
+			elif regex_bool.search(s):
+				command.push_back(TerminalCommandOptional.new(TYPE_BOOL, not not regex_true.search(s)))
+			else:
+				command.push_back(TerminalCommandOptional.new(TYPE_STRING, s))
 	
 	return command
 
@@ -86,66 +101,74 @@ static func _register_regex() -> void:
 	regex_true.compile('^(true|enabled?)$')
 	regex_whitespace.compile('[^\\s​⠀]')
 
-static func execute(base_command: String, parsed_optionals: Array[TerminalCommandOptional]) -> void:
-	if not command_registry.has(base_command):
-		return _invalid_command(PackedStringArray([base_command]))
+static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
+	if not parsed_optionals: # no command given.
+		return _no_command()
 	
-	var command_path  : PackedStringArray = [base_command]
-	var subcommand    : TerminalCommand = command_registry[base_command]
+	var base = parsed_optionals[0].value
+	
+	if not command_registry.has(base):
+		return _invalid_command(str(base))
+	
+	base = base as String # would only be string if passed last check.
+	
+	var command_path  : PackedStringArray = [base]
+	var subcommand    : TerminalCommand = command_registry[base]
 	var optional      : TerminalCommandOptional
-	var is_base       : bool = true
 	var is_subcommand : bool = false
 	var is_help_flag  : bool = false
 	var is_flag       : bool = false
-	var is_ghost      : bool = false
+	var has_ghosts    : bool = false
+	
+	var temp : Array
 	
 	var options : Dictionary = {}
 	
 	while parsed_optionals.size():
 		optional = parsed_optionals.pop_front()
 		
-		is_subcommand = subcommand.subcommands.has(optional.name)
-		is_help_flag  = optional.name == "-h" or optional.name == "--help"
-		is_flag       = subcommand.flags.has(optional.name)
-		is_ghost      = subcommand.ghosts.has(optional.name)
+		command_path.append(str(optional.value))
 		
-		if is_subcommand and is_ghost:
-			is_subcommand = false if optional.value else true
-			is_ghost = not is_subcommand
+		is_subcommand = subcommand.subcommands.has(optional.value)
+		is_help_flag  = optional.value == "-h" or optional.value == "--help"
+		is_flag       = subcommand.flags.has(optional.value)
+		has_ghosts    = not not (subcommand.ghosts)
+		
+		print(has_ghosts)
 		
 		if is_help_flag:
 			return _get_help(subcommand)
 			
-		if is_subcommand:
-			subcommand = subcommand.subcommands[optional.name]
-			command_path.append(optional.name)
+		elif is_subcommand:
+			subcommand = subcommand.subcommands[optional.value]
 		
 		elif is_flag:
-			# check if valid type.
-			if not typeof(optional.value) == subcommand.flags[optional.name]:
-				return _invalid_value_type(
-					command_path,
-					optional.name,
-					typeof(optional.value),
-					subcommand.flags[optional.name]
-				)
-			
-			options[optional.name] = optional.value
-			
-		elif is_ghost:
-			# check if valid type.
-			if not typeof(optional.value) == subcommand.ghosts[optional.name]:
-				return _invalid_value_type(
-					command_path,
-					optional.name,
-					typeof(optional.value),
-					subcommand.ghosts[optional.name]
-				)
-			
-			options[optional.name] = optional.value
+			temp = subcommand.flags[optional.value]
+			# check if flag doesn't require any proceeding value.
+			if temp[0] == TYPE_NIL:
+				options[optional.value] = null
+				
+			elif parsed_optionals.size():
+				# if next optionals' type is the type required for this flag.
+				if parsed_optionals[0].type == temp[0]:
+					# pop next optional and place in options under this flag.
+					options[optional.value] = parsed_optionals.pop_front()
+				else:
+					# TODO : incorrect flag value type.
+					return _invalid_value_type(' '.join(command_path), optional.value, temp[0])
+					pass
+				
+			else:
+				# TODO : expected a value after flag.
+				pass
+		
+		elif has_ghosts:
+			# TODO : search through ghosts and find match to type.
+			pass
 		
 		else:
-			return _invalid_command(command_path)
+			# TODO : error too many arguments, return help.
+			pass
 	
 	if not subcommand.has_method("execute"):
 		if subcommand.execute is Callable:
@@ -174,15 +197,6 @@ static func _get_help(command: TerminalCommand = null) -> void:
 	Terminal.etch_raw("\n[color=%s]%s[/color]" % [ Debugger.INFO_COLOR, command.name ])
 	
 	# print subcommands
-	if command.subcommands:
-		first_comma = true
-		Terminal.etch_raw(" [color=%s]" % Debugger.MEMBER_NAME_COLOR)
-		for subcommand in command.subcommands:
-			if not first_comma:
-				Terminal.etch_raw(", ")
-			first_comma = false
-			Terminal.etch_raw(subcommand.name)
-		Terminal.etch_raw("[/color]")
 	
 	
 	
@@ -193,15 +207,24 @@ static func _get_help(command: TerminalCommand = null) -> void:
 	#      loop through command's flags and ghosts first, then go to subcommands.
 	pass
 
-static func _invalid_command(command_path: PackedStringArray) -> void:
-	return Logger.error("Invalid command \"%s\"." % ' '.join(command_path), SYSTEM)
+static func _no_command() -> void:
+	return Logger.warn("No command given.", SYSTEM)
 
-static func _invalid_value_type(command_path: PackedStringArray, optional_name: String, optional_expected_type: int, optional_recieved_type: int) -> void:
-	return Logger.error("Invalid value of %s in command \"%s\". Expected type of %s, instead got type of %s." % [
-		optional_name,
-		' '.join(command_path),
-		game.get_string_type(optional_expected_type),
-		game.get_string_type(optional_recieved_type),
+static func _invalid_command(command: String) -> void:
+	return Logger.error("Invalid command \"%s\"." % command, SYSTEM)
+
+static func _invalid_value_type(command: String, optional_value: Variant, expected_type: int) -> void:
+	return Logger.error("Invalid value of \"%s\" in command \"%s\". Expected type of %s." % [
+		str(optional_value),
+		command,
+		game.get_string_type(expected_type),
+	], SYSTEM)
+
+static func _invalid_flag_value_type(command: String, flag_name: String, expected_type: int) -> void:
+	return Logger.error("Invalid value of \"%s\" in command \"%s\". Expected type of %s." % [
+		flag_name,
+		command,
+		game.get_string_type(expected_type),
 	], SYSTEM)
 
 static func _no_execution_method(command_path: PackedStringArray) -> void:

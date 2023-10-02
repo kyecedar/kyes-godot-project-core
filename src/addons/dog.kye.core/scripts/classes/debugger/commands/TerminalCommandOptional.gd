@@ -6,8 +6,9 @@ enum {
 	TYPE_FLAG    = -2,
 }
 
-var value: Variant
+var type  : int
+var value : Variant
 
-func _init(name: String, value: Variant = null) -> void:
-	self.name = name
+func _init(type: int, value: Variant) -> void:
+	self.type = type
 	self.value = value
