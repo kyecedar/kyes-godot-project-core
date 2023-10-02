@@ -107,20 +107,20 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	if not parsed_optionals: # no command given.
 		return _no_command()
 	
-	var base = parsed_optionals[0].value
+	var base = parsed_optionals.pop_front().value
 	
 	if not command_registry.has(base):
 		return _invalid_command(str(base))
 	
 	base = base as String # would only be string if passed last check.
 	
-	var command_path  : PackedStringArray = [base]
+	var command_path  : String = base
 	var subcommand    : TerminalCommand = command_registry[base]
 	var optional      : TerminalCommandOptional = null
 	var is_subcommand : bool = false
 	var is_help_flag  : bool = false
 	var is_flag       : bool = false
-	var has_ghosts    : bool = false
+	var has_ghost     : bool = false
 	
 	var temp : Array
 	
@@ -130,17 +130,14 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 		# unreasolved assign if i don't add "as TerminalCommandOptional", since pop_front returns Variant.
 		optional = parsed_optionals.pop_front() as TerminalCommandOptional
 		
-		command_path.append(str(optional.value))
+		command_path += " " + str(optional.value)
 		
 		is_subcommand = subcommand.subcommands.has(optional.value)
 		is_help_flag  = optional.value == "-h" or optional.value == "--help"
 		is_flag       = subcommand.flags.has(optional.value)
-		has_ghosts    = not not (subcommand.ghosts)
-		
-		print(has_ghosts)
 		
 		if is_help_flag:
-			return _get_help(" ".join(command_path), subcommand)
+			return _get_help(command_path, subcommand)
 			
 		elif is_subcommand:
 			subcommand = subcommand.subcommands[optional.value]
@@ -157,19 +154,26 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 					# pop next optional and place in options under this flag.
 					options[optional.value] = parsed_optionals.pop_front()
 				else:
-					return _get_help(" ".join(command_path), subcommand)
+					return _get_help(command_path, subcommand)
 				
 			else:
-				# TODO : expected a value after flag.
-				pass
+				return _get_help(command_path, subcommand)
 		
-		elif has_ghosts:
-			# TODO : search through ghosts and find match to type.
-			pass
+		# if subcommand has ghosts, loop through and find if type matches optional's type.
+		elif subcommand.ghosts:
+			for key: String in subcommand.ghosts.keys():
+				if optional.type == subcommand.ghosts[key][0]:
+					options[key] = optional.value
+					has_ghost = true
+					break
+			
+			# invalid ghost type. return help.
+			if not has_ghost:
+				return _get_help(command_path, subcommand)
 		
+		# error too many arguments, return help.
 		else:
-			# TODO : error too many arguments, return help.
-			pass
+			return _get_help(command_path, subcommand)
 	
 	if not subcommand.has_method("execute"):
 		if subcommand.execute is Callable:
@@ -177,18 +181,26 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	else:
 		_no_execution_method(command_path)
 
-static func _get_help(command_path: String = "", command: TerminalCommand = null) -> void:
+
+## internal command for [method _get_help].
+static func _print_help_subcommand(command: TerminalCommand, tab: String = "") -> void:
+	Terminal.etch_raw(tab + command.name)
+	Terminal.etch_raw(" ".repeat(max(9 - command.name.length(), 0)))
+	Terminal.etch_raw(" " + command.description.replace("\n", tab + "\n" + " ".repeat(max(10, command.name.length() + 1))))
+
+static func _get_help(command_path: String = "", command: TerminalCommand = null, groups: Array[TerminalCommandGroup] = command_groups) -> void:
 	var commands : Dictionary = command_registry if not command else command.subcommands
+	var keys : Array = commands.keys()
 	
-	var keys : Array[String] = commands.keys()
-	var current_command : TerminalCommand
+	Terminal.etch_raw("\n")
 	
 	# loop through all command groups and
 	# remove them until there's only ungrouped commands in "keys".
-	for key: String in keys:
-		# if any command group has the given key, remove it from the list.
-		if command_groups.all(func(group: TerminalCommandGroup): group.commands.has(key)):
-			keys.remove_at(keys.find(key))
+	if groups:
+		for key: String in keys:
+			# if any command group has the given key, remove it from the list.
+			if groups.all(func(group: TerminalCommandGroup): return group.commands.has(key)):
+				keys.remove_at(keys.find(key))
 	
 	if command:
 		# TODO : print command info.
@@ -201,11 +213,8 @@ static func _get_help(command_path: String = "", command: TerminalCommand = null
 	
 	# TODO : print ungrouped commands first.
 	for key: String in keys:
-		current_command = commands[key]
-		
-		Terminal.etch_raw(key)
-		Terminal.etch_raw(" ".repeat(max(9 - key.length(), 0)))
-		Terminal.etch_raw(" " + current_command.description.replace("\n", "\n" + " ".repeat(max(10, key.length() + 1))))
+		print(key)
+		_print_help_subcommand(commands[key])
 	
 	# TODO : print groups.
 	for group: TerminalCommandGroup in command_groups:
@@ -214,10 +223,7 @@ static func _get_help(command_path: String = "", command: TerminalCommand = null
 		
 		# print commands within group and their descriptions.
 		for key: String in group.commands:
-			current_command = commands[key]
-			
-			Terminal.etch_raw("")
-		pass
+			_print_help_subcommand(commands[key], "\t")
 
 static func _no_command() -> void:
 	return Logger.warn("No command given.", SYSTEM)
@@ -239,8 +245,8 @@ static func _invalid_flag_value_type(command: String, flag_name: String, expecte
 		game.get_string_type(expected_type),
 	], SYSTEM)
 
-static func _no_execution_method(command_path: PackedStringArray) -> void:
-	return Logger.error("Command \"%s\" in registry, but no execution method provided." % ' '.join(command_path), SYSTEM)
+static func _no_execution_method(command: String) -> void:
+	return Logger.error("Command \"%s\" in registry, but no execution method provided." % command, SYSTEM)
 
 ## Creates and adds command to registry if command under given name doesn't exist.[br]
 ## Returns null if command already exists.
@@ -268,7 +274,7 @@ static var ERROR_CHAR   = '' ## Character to be displayed next to an error lo
 static var FATAL_CHAR   = '󰚌' ## Character to be displayed next to a fatal log.
 
 ## A queue of logs yet to be put on the terminal.
-static var log_queue : Array[Array] = []
+static var log_queue : Array[Variant] = []
 
 ## Etches logs that were not added to the terminal yet.
 static func _handle_missed_logs() -> void:

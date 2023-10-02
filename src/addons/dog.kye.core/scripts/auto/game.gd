@@ -19,17 +19,23 @@ func _ready() -> void:
 		print(options.has("--bingusalso"))
 	)
 	
-	for i in Terminal.parse_command('test 10 1.00 true TRUE fuck bingus --help "SHIT this is a string !!!!"'):
-		var bingu := ""
-		var biigiegng := get_string_type(i.type)
-		if biigiegng:
-			bingu = biigiegng
-		elif i.type == TerminalCommandOptional.TYPE_COMMAND:
-			bingu = "COMMAND"
-		else:
-			bingu = "FLAG"
-		
-		print(str(typeof(i.value)) + ' ' + str(i.value))
+	print(Terminal.command_registry)
+	
+	Terminal.execute(Terminal.parse_command("test bingus --bingusalso"))
+	
+	Terminal._get_help()
+	
+	#for i in Terminal.parse_command('test 10 1.00 true TRUE fuck bingus --help "SHIT this is a string !!!!"'):
+		#var bingu := ""
+		#var biigiegng := get_string_type(i.type)
+		#if biigiegng:
+			#bingu = biigiegng
+		#elif i.type == TerminalCommandOptional.TYPE_COMMAND:
+			#bingu = "COMMAND"
+		#else:
+			#bingu = "FLAG"
+#
+		#print(str(typeof(i.value)) + ' ' + str(i.value))
 	
 	if on_ready:
 		on_ready.call()

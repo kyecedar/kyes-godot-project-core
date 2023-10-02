@@ -148,6 +148,7 @@ func submit_input() -> void:
 		print(display_input)
 	
 	# TODO : send command to be parsed.
+	Terminal.execute(Terminal.parse_command(input.text))
 	
 	input.text = ""
 
