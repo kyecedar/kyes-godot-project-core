@@ -8,6 +8,7 @@ const SYSTEM : String = "TERMINAL"
 ## Registry of all commands.[br]
 ## See TODO : make command registry functions.
 static var command_registry : Dictionary = {}
+static var command_groups   : Array[TerminalCommandGroup] = []
 
 static var regex_command    : RegEx = RegEx.new()
 static var regex_string     : RegEx = RegEx.new()
@@ -73,7 +74,9 @@ static func parse_command(text: String) -> Array[TerminalCommandOptional]:
 		split_text = n.split(' ', false)
 		
 		for s in split_text:
-			if regex_command.search(s):
+			if regex_bool.search(s):
+				command.push_back(TerminalCommandOptional.new(TYPE_BOOL, not not regex_true.search(s)))
+			elif regex_command.search(s):
 				command.push_back(TerminalCommandOptional.new(
 					TerminalCommandOptional.TYPE_COMMAND, s))
 			elif regex_flag.search(s):
@@ -84,8 +87,6 @@ static func parse_command(text: String) -> Array[TerminalCommandOptional]:
 					command.push_back(TerminalCommandOptional.new(TYPE_INT, int(s)))
 				else:
 					command.push_back(TerminalCommandOptional.new(TYPE_FLOAT, float(s)))
-			elif regex_bool.search(s):
-				command.push_back(TerminalCommandOptional.new(TYPE_BOOL, not not regex_true.search(s)))
 			else:
 				command.push_back(TerminalCommandOptional.new(TYPE_STRING, s))
 	
@@ -97,8 +98,9 @@ static func _register_regex() -> void:
 	regex_flag.compile('^--?[A-Za-z]+$')
 	regex_number.compile('^\\d+(\\.\\d*)?$')
 	regex_int.compile('^\\d+(?!(.\\d*))')
-	regex_bool.compile('^((true|false)|((enable|disable)d?))$')
-	regex_true.compile('^(true|enabled?)$')
+	# https://github.com/godotengine/godot-proposals/issues/2927#issuecomment-884204291
+	regex_bool.compile('^(?i)((true|false)|((enable|disable)d?))$')
+	regex_true.compile('^(?i)(true|enabled?)$')
 	regex_whitespace.compile('[^\\s​⠀]')
 
 static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
@@ -125,7 +127,7 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	var options : Dictionary = {}
 	
 	while parsed_optionals.size():
-		# TODO : resolve unreasolved assign here.
+		# unreasolved assign if i don't add "as TerminalCommandOptional", since pop_front returns Variant.
 		optional = parsed_optionals.pop_front() as TerminalCommandOptional
 		
 		command_path.append(str(optional.value))
@@ -138,7 +140,7 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 		print(has_ghosts)
 		
 		if is_help_flag:
-			return _get_help(subcommand)
+			return _get_help(" ".join(command_path), subcommand)
 			
 		elif is_subcommand:
 			subcommand = subcommand.subcommands[optional.value]
@@ -155,9 +157,7 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 					# pop next optional and place in options under this flag.
 					options[optional.value] = parsed_optionals.pop_front()
 				else:
-					# TODO : incorrect flag value type.
-					return _invalid_value_type(' '.join(command_path), optional.value, temp[0])
-					pass
+					return _get_help(" ".join(command_path), subcommand)
 				
 			else:
 				# TODO : expected a value after flag.
@@ -177,36 +177,47 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	else:
 		_no_execution_method(command_path)
 
-static func _get_help(command: TerminalCommand = null) -> void:
-	if not command:
-		# TODO : print all commands and their descriptions.
-		#      loop through command_registry keys.
-		#      get descriptions and print them side-by-side.
+static func _get_help(command_path: String = "", command: TerminalCommand = null) -> void:
+	var commands : Dictionary = command_registry if not command else command.subcommands
+	
+	var keys : Array[String] = commands.keys()
+	var current_command : TerminalCommand
+	
+	# loop through all command groups and
+	# remove them until there's only ungrouped commands in "keys".
+	for key: String in keys:
+		# if any command group has the given key, remove it from the list.
+		if command_groups.all(func(group: TerminalCommandGroup): group.commands.has(key)):
+			keys.remove_at(keys.find(key))
+	
+	if command:
+		# TODO : print command info.
+		#        print flags.
+		#        print ghosts.
+		pass
+	else:
+		#
+		pass
+	
+	# TODO : print ungrouped commands first.
+	for key: String in keys:
+		current_command = commands[key]
 		
-		var first : bool = true
+		Terminal.etch_raw(key)
+		Terminal.etch_raw(" ".repeat(max(9 - key.length(), 0)))
+		Terminal.etch_raw(" " + current_command.description.replace("\n", "\n" + " ".repeat(max(10, key.length() + 1))))
+	
+	# TODO : print groups.
+	for group: TerminalCommandGroup in command_groups:
+		# print description.
+		Terminal.etch_raw("\n\n%s\n" % [group.description])
 		
-		# recurse through all commands in registry if no specific command given.
-		for c: TerminalCommand in command_registry:
-			if not first:
-				Terminal.etch_raw('\n')
-			first = false
-			_get_help(c)
-	
-	var first_comma : bool
-	
-	# print name.
-	Terminal.etch_raw("\n[color=%s]%s[/color]" % [ Debugger.INFO_COLOR, command.name ])
-	
-	# print subcommands
-	
-	
-	
-	# print flags
-	# print ghosts
-	# print description
-	# TODO : get help for command.
-	#      loop through command's flags and ghosts first, then go to subcommands.
-	pass
+		# print commands within group and their descriptions.
+		for key: String in group.commands:
+			current_command = commands[key]
+			
+			Terminal.etch_raw("")
+		pass
 
 static func _no_command() -> void:
 	return Logger.warn("No command given.", SYSTEM)
@@ -215,7 +226,7 @@ static func _invalid_command(command: String) -> void:
 	return Logger.error("Invalid command \"%s\"." % command, SYSTEM)
 
 static func _invalid_value_type(command: String, optional_value: Variant, expected_type: int) -> void:
-	return Logger.error("Invalid value of \"%s\" in command \"%s\". Expected type of %s." % [
+	return Logger.error("Invalid value \"%s\" in command \"%s\". Expected type of %s." % [
 		str(optional_value),
 		command,
 		game.get_string_type(expected_type),
@@ -242,6 +253,9 @@ static func add_command(name: String) -> TerminalCommand:
 	# create and return command.
 	command_registry[name] = TerminalCommand.new(name)
 	return command_registry[name]
+
+static func add_command_group(description: String) -> void:
+	command_groups.push_back(TerminalCommandGroup.new(description))
 
 #endregion  COMMANDS.
 

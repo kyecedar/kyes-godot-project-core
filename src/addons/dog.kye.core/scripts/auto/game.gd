@@ -19,7 +19,7 @@ func _ready() -> void:
 		print(options.has("--bingusalso"))
 	)
 	
-	for i in Terminal.parse_command('test 10 1.00 true fuck bingus --help "SHIT this is a string !!!!"'):
+	for i in Terminal.parse_command('test 10 1.00 true TRUE fuck bingus --help "SHIT this is a string !!!!"'):
 		var bingu := ""
 		var biigiegng := get_string_type(i.type)
 		if biigiegng:

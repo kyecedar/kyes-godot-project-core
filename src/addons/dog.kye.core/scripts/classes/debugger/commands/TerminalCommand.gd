@@ -16,6 +16,8 @@ var ghosts      : Dictionary = {} ## Like [code]"filepath": [TYPE_STRING, "Descr
 var execute : Callable = (func(options: Dictionary) -> void: Logger.info("Execution method of \"%s\" has not been registered yet." % name))
 
 func _init(name: String, description: String = "No description.") -> void:
+	if name.length() > 9:
+		Logger.warn("Try to keep command names under 10 characters.", SYSTEM)
 	self.name = name
 	self.description = description
 
