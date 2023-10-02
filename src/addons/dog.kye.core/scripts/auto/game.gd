@@ -13,17 +13,26 @@ func _ready() -> void:
 	# TODO : find somewhere to put this : etch("\n[color=#478CBF][font_size=60][/font_size][/color] made with godot.")
 	
 	# register terminal commands.
-	var command_test = Terminal.add_command("test").add_flag("--shit")
-	command_test.add_command("bingus").add_flag("--bingusalso").set_execute(func(options: Dictionary):
-		print(options)
-		print(options.has("--bingusalso"))
+	var command_help = Terminal.add_command("help").set_execute(func(_options: Dictionary): Terminal.get_help())
+	var command_echo = Terminal.add_command("echo").add_ghost("string", TYPE_STRING, "String to echo to terminal.").set_execute(func(options: Dictionary):
+		if not options.has("string"):
+			Terminal.get_help(["echo"])
+			return
+		
+		Logger.info(options.string)
 	)
 	
-	print(Terminal.command_registry)
+	#var command_test = Terminal.add_command("test").add_flag("--shit")
+	#command_test.add_command("bingus").add_flag("--bingusalso").set_execute(func(options: Dictionary):
+		#print(options)
+		#print(options.has("--bingusalso"))
+	#)
 	
-	Terminal.execute(Terminal.parse_command("test bingus --bingusalso"))
+	#print(Terminal.command_registry)
 	
-	Terminal._get_help()
+	#Terminal.execute(Terminal.parse_command("test bingus --bingusalso"))
+	
+	#Terminal._get_help()
 	
 	#for i in Terminal.parse_command('test 10 1.00 true TRUE fuck bingus --help "SHIT this is a string !!!!"'):
 		#var bingu := ""

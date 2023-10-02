@@ -31,9 +31,12 @@ extends Control
 @export_multiline var boot_text : String = "[color=#ffffff88]running v{{TERMINAL_VERSION}} of terminal.\nchange this text in the inspector.\n\n\"help\" for help.[/color]"
 @export var log_input_on_submit : bool = true ## If the command should be printed and logged when submitting.
 
+var command_history     : PackedStringArray = []
+var command_index       : int = -1 ## Points to a command in the command history.[br]Changes when user navigates through command history with arrow keys.
+var command_temp        : String = "" ## When user navigates from the command they're typing, store it here and recover it when index reaches -1 again.
 var parent_control_node : Control ## Parent. Used to constrain terminal inside.
-var character_width  : int ## Width of a single character.[br]Obtained by getting width of caret.
-var character_height : int ## Height of a single character.[br]Obtained by getting height of caret.
+var character_width     : int ## Width of a single character.[br]Obtained by getting width of caret.
+var character_height    : int ## Height of a single character.[br]Obtained by getting height of caret.
 
 # TODO : remember to keep zero width spaces in ghost line.
 
@@ -81,6 +84,34 @@ func _input(event: InputEvent) -> void:
 					submit_input()
 				else:
 					input.insert_text_at_caret('\n')
+			elif Input.is_key_pressed(KEY_UP):
+				if not command_history:
+					return
+				
+				# test if caret is at top of input.
+				if not input.get_caret_line(0):
+					# TODO : increment through command history.
+					if command_index == -1:
+						command_temp = input.text
+					
+					command_index = min(len(command_history) - 1, command_index + 1)
+					print(command_index)
+					input.text = command_history[command_index]
+				pass
+			elif Input.is_key_pressed(KEY_DOWN):
+				print(input.get_caret_line(0) == input.get_line_count() - 1)
+				if not command_history:
+					return
+				
+				if input.get_caret_line(0) == input.get_line_count() - 1:
+					command_index = max(command_index - 1, -1)
+					
+					if command_index > -1:
+						input.text = command_history[command_index]
+					else:
+						input.text = command_temp
+				# TODO : test if caret is at bottom of input.
+				pass
 	
 	if not drag_and_resize:
 		return
@@ -97,6 +128,8 @@ func _input(event: InputEvent) -> void:
 				resize_position = position
 				resize_size = size
 			resizing = event.button_index == MOUSE_BUTTON_LEFT and event.pressed
+			if not resizing:
+				hovering_edge = null
 		
 		elif hovering_titlebar or (event.button_index == MOUSE_BUTTON_MIDDLE and mouse_over()):
 			if not dragging:
@@ -148,9 +181,11 @@ func submit_input() -> void:
 		print(display_input)
 	
 	# TODO : send command to be parsed.
-	Terminal.execute(Terminal.parse_command(input.text))
-	
-	input.text = ""
+	if input.text:
+		command_history.append(input.text)
+		Terminal.execute(Terminal.parse_command(input.text))
+		
+		input.text = ""
 
 func _on_input_change() -> void:
 	pass
@@ -205,7 +240,7 @@ func _constrain() -> void:
 ## When hovered, it is stored in [member TerminalNode.hovering_edge].
 func _handle_hovering_for_edge(edge: Panel) -> void:
 	edge.mouse_entered.connect(func(): if not resizing: hovering_edge = edge)
-	edge.mouse_exited.connect(func(): if not resizing: hovering_edge = null)
+	edge.mouse_exited.connect(func(): if not resizing: hovering_edge = null) # TODO : make it so this calls when it needs to.
 
 func _handle_drag(event: InputEvent) -> void:
 	position.x = min(max(event.position.x + resize_position.x, 0), _get_parent_size().x - size.x)

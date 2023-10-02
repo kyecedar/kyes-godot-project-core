@@ -10,6 +10,8 @@ var subcommands : Dictionary = {}
 var flags       : Dictionary = {} ## Like [code]"--gravity": [TYPE_FLOAT, "Description."][/code]
 var ghosts      : Dictionary = {} ## Like [code]"filepath": [TYPE_STRING, "Description."][/code]
 
+var groups : Array[TerminalCommandGroup] = []
+
 ## Function that is called when command is executed.[br]
 ## Flags can look like [code]--help[/code], [code]-f: false[/code], [code]-g: 9.8[/code]. Use [method Dictionary.has] to check if flag exists.[br]
 ## Values can look like [code]name: "John Doe"[/code], [code]iterations: 200[/code], [code]gravity: 9.8[/code], or [code]include: false[/code]. Use [method Dictionary.has] to check if value exists.
@@ -55,6 +57,9 @@ func add_ghost(name: String, type: int, description: String = "No description.")
 	
 	ghosts[name] = [type, description]
 	return self
+
+func add_group(description: String) -> void:
+	groups.push_back(TerminalCommandGroup.new(description))
 
 ## Sets the execution function of command.[br]
 ## Returns self.

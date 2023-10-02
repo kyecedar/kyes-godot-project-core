@@ -114,7 +114,7 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	
 	base = base as String # would only be string if passed last check.
 	
-	var command_path  : String = base
+	var command_path  : PackedStringArray = [base]
 	var subcommand    : TerminalCommand = command_registry[base]
 	var optional      : TerminalCommandOptional = null
 	var is_subcommand : bool = false
@@ -130,16 +130,17 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 		# unreasolved assign if i don't add "as TerminalCommandOptional", since pop_front returns Variant.
 		optional = parsed_optionals.pop_front() as TerminalCommandOptional
 		
-		command_path += " " + str(optional.value)
 		
 		is_subcommand = subcommand.subcommands.has(optional.value)
 		is_help_flag  = optional.value == "-h" or optional.value == "--help"
 		is_flag       = subcommand.flags.has(optional.value)
 		
+		
 		if is_help_flag:
-			return _get_help(command_path, subcommand)
+			return get_help(command_path)
 			
 		elif is_subcommand:
+			command_path.append(str(optional.value))
 			subcommand = subcommand.subcommands[optional.value]
 		
 		elif is_flag:
@@ -154,10 +155,10 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 					# pop next optional and place in options under this flag.
 					options[optional.value] = parsed_optionals.pop_front()
 				else:
-					return _get_help(command_path, subcommand)
+					return get_help(command_path)
 				
 			else:
-				return _get_help(command_path, subcommand)
+				return get_help(command_path)
 		
 		# if subcommand has ghosts, loop through and find if type matches optional's type.
 		elif subcommand.ghosts:
@@ -169,30 +170,50 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 			
 			# invalid ghost type. return help.
 			if not has_ghost:
-				return _get_help(command_path, subcommand)
+				return get_help(command_path)
 		
 		# error too many arguments, return help.
 		else:
-			return _get_help(command_path, subcommand)
+			return get_help(command_path)
 	
 	if not subcommand.has_method("execute"):
 		if subcommand.execute is Callable:
 			subcommand.execute.call_deferred(options)
 	else:
-		_no_execution_method(command_path)
+		_no_execution_method(" ".join(command_path))
 
 
-## internal command for [method _get_help].
+## internal command for [method get_help].
 static func _print_help_subcommand(command: TerminalCommand, tab: String = "") -> void:
 	Terminal.etch_raw(tab + command.name)
 	Terminal.etch_raw(" ".repeat(max(9 - command.name.length(), 0)))
-	Terminal.etch_raw(" " + command.description.replace("\n", tab + "\n" + " ".repeat(max(10, command.name.length() + 1))))
+	Terminal.etch_raw(" " + command.description.replace("\n", tab + "\n" + " ".repeat(max(10, command.name.length() + 1))) + "\n")
 
-static func _get_help(command_path: String = "", command: TerminalCommand = null, groups: Array[TerminalCommandGroup] = command_groups) -> void:
-	var commands : Dictionary = command_registry if not command else command.subcommands
-	var keys : Array = commands.keys()
+static func get_help(command_path: PackedStringArray = []) -> void:
+	# command: TerminalCommand = null, groups: Array[TerminalCommandGroup] = command_groups
+	var command : TerminalCommand = null
+	var groups  : Array[TerminalCommandGroup] = command_groups
+	var subcommands : Dictionary = command_registry
 	
-	Terminal.etch_raw("\n")
+	if command_path:
+		if command_registry.has(command_path[0]):
+			command = command_registry[command_path[0]]
+			subcommands = command.subcommands
+			groups = command.groups
+			command_path.remove_at(0)
+		else:
+			Logger.warn("Command path of \"%s\" is not valid." % command_path[0], SYSTEM)
+		
+		# TODO : get command from string.
+		for key: String in command_path:
+			command = command.subcommands[key]
+			subcommands = command.subcommands
+			groups = command.groups
+	
+	var keys : Array = subcommands.keys()
+	
+	if keys:
+		Terminal.etch_raw("\n")
 	
 	# loop through all command groups and
 	# remove them until there's only ungrouped commands in "keys".
@@ -202,7 +223,7 @@ static func _get_help(command_path: String = "", command: TerminalCommand = null
 			if groups.all(func(group: TerminalCommandGroup): return group.commands.has(key)):
 				keys.remove_at(keys.find(key))
 	
-	if command:
+	if command_path:
 		# TODO : print command info.
 		#        print flags.
 		#        print ghosts.
@@ -213,17 +234,16 @@ static func _get_help(command_path: String = "", command: TerminalCommand = null
 	
 	# TODO : print ungrouped commands first.
 	for key: String in keys:
-		print(key)
-		_print_help_subcommand(commands[key])
+		_print_help_subcommand(subcommands[key])
 	
 	# TODO : print groups.
-	for group: TerminalCommandGroup in command_groups:
+	for group: TerminalCommandGroup in groups:
 		# print description.
 		Terminal.etch_raw("\n\n%s\n" % [group.description])
 		
 		# print commands within group and their descriptions.
 		for key: String in group.commands:
-			_print_help_subcommand(commands[key], "\t")
+			_print_help_subcommand(subcommands[key], "\t")
 
 static func _no_command() -> void:
 	return Logger.warn("No command given.", SYSTEM)
