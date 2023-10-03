@@ -15,67 +15,7 @@ func _ready() -> void:
 	# TODO : find somewhere to put this : etch("\n[color=#478CBF][font_size=60][/font_size][/color] made with godot.")
 	
 	# register terminal commands.
-	var command_help = Terminal.add_command("help")
-	command_help.set_execute(func(_options: Dictionary) -> void: Terminal.get_help())
-	
-	var command_clear = Terminal.add_command("clear").set_execute(func(_options: Dictionary) -> void:
-		terminal.history.clear()
-	)
-	
-	var command_echo = Terminal.add_command("echo", "Echo string to terminal. BBCode available.")
-	command_echo.add_ghost("string", TYPE_STRING, "String to echo to terminal.")
-	command_echo.set_execute(func(options: Dictionary):
-		if not options.has("string"):
-			Terminal.get_help(["echo"])
-			return
-		
-		Logger.info(options.string)
-	)
-	
-	var command_set = Terminal.add_command("set")
-	command_set.add_command("commandHistory")
-	command_set.add_command("temp").add_ghost("value", TYPE_INT).set_execute(func(options: Dictionary) -> void:
-		if not options.has("value"):
-			Terminal.get_help(["set", "temp"])
-			return
-		
-		game.temp = options.value
-	)
-	command_set.set_execute(func(_options: Dictionary) -> void:
-		pass
-	)
-	
-	var command_get = Terminal.add_command("get")
-	command_get.add_command("temp").set_execute(func(options: Dictionary) -> void:
-		Logger.info(str(game.temp))
-	)
-	command_get.add_command("termsize").set_execute(func(options: Dictionary) -> void:
-		Logger.info("x%s y%s" % [str(terminal.size.x), str(terminal.size.y)])
-	)
-	
-	#var command_test = Terminal.add_command("test").add_flag("--shit")
-	#command_test.add_command("bingus").add_flag("--bingusalso").set_execute(func(options: Dictionary):
-		#print(options)
-		#print(options.has("--bingusalso"))
-	#)
-	
-	#print(Terminal.command_registry)
-	
-	#Terminal.execute(Terminal.parse_command("test bingus --bingusalso"))
-	
-	#Terminal._get_help()
-	
-	#for i in Terminal.parse_command('test 10 1.00 true TRUE fuck bingus --help "SHIT this is a string !!!!"'):
-		#var bingu := ""
-		#var biigiegng := get_string_type(i.type)
-		#if biigiegng:
-			#bingu = biigiegng
-		#elif i.type == TerminalCommandOptional.TYPE_COMMAND:
-			#bingu = "COMMAND"
-		#else:
-			#bingu = "FLAG"
-#
-		#print(str(typeof(i.value)) + ' ' + str(i.value))
+	Terminal.register_default_commands()
 	
 	if on_ready:
 		on_ready.call()

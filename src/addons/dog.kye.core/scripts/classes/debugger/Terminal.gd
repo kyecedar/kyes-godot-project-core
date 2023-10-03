@@ -21,7 +21,28 @@ static var regex_whitespace : RegEx = RegEx.new()
 
 #region //  COMMANDS.
 
-#static func get_optionals(text: )
+static func register_default_commands() -> void:
+	var command_help := add_command("help", "Get terminal commands.")
+	command_help.set_execute(func(_options: Dictionary):
+		Terminal.get_help()
+	)
+	
+	var command_clear := add_command("clear", "Clear terminal history.")
+	command_clear.set_execute(func(_options: Dictionary):
+		game.terminal.history.clear()
+	)
+	
+	var command_echo := add_command("echo", "Echo string to terminal. BBCode available.")
+	command_echo.add_ghost("string", TYPE_STRING, "String to echo.")
+	command_echo.set_execute(func(options: Dictionary):
+		if not options.has("string"):
+			get_help(["echo"])
+			return
+		
+		Logger.info(options.string)
+	)
+	
+	add_command_group("terminal commands.").add(["help", "clear", "echo"])
 
 ## Returns array that looks like[br]
 ## [ [[member TerminalCommandOptional.TYPE_COMMAND], "set"], [[member TerminalCommandOptional.TYPE_COMMAND], "playername"], [TYPE_STRING, "Billy"] ]
@@ -91,17 +112,6 @@ static func parse_command(text: String) -> Array[TerminalCommandOptional]:
 				command.push_back(TerminalCommandOptional.new(TYPE_STRING, s))
 	
 	return command
-
-static func _register_regex() -> void:
-	regex_command.compile('^[A-Za-z]+$')
-	regex_string.compile('(?<!\\\\)"([\\S\\s]*?)(?<!\\\\)"')
-	regex_flag.compile('^--?[A-Za-z]+$')
-	regex_number.compile('^\\d+(\\.\\d*)?$')
-	regex_int.compile('^\\d+(?!(.\\d*))')
-	# https://github.com/godotengine/godot-proposals/issues/2927#issuecomment-884204291
-	regex_bool.compile('^(?i)((true|false)|((enable|disable)d?))$')
-	regex_true.compile('^(?i)(true|enabled?)$')
-	regex_whitespace.compile('[^\\s​⠀]')
 
 static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	if not parsed_optionals: # no command given.
@@ -182,18 +192,12 @@ static func execute(parsed_optionals: Array[TerminalCommandOptional]) -> void:
 	else:
 		_no_execution_method(" ".join(command_path))
 
-
-## internal command for [method get_help].
-static func _print_help_subcommand(command: TerminalCommand, tab: String = "") -> void:
-	Terminal.etch_raw(tab + command.name)
-	Terminal.etch_raw(" ".repeat(max(9 - command.name.length(), 0)))
-	Terminal.etch_raw(" " + command.description.replace("\n", tab + "\n" + " ".repeat(max(10, command.name.length() + 1))) + "\n")
-
 static func get_help(command_path: PackedStringArray = []) -> void:
 	# command: TerminalCommand = null, groups: Array[TerminalCommandGroup] = command_groups
 	var command : TerminalCommand = null
 	var groups  : Array[TerminalCommandGroup] = command_groups
 	var subcommands : Dictionary = command_registry
+	print(groups)
 	
 	if command_path:
 		if command_registry.has(command_path[0]):
@@ -202,7 +206,8 @@ static func get_help(command_path: PackedStringArray = []) -> void:
 			groups = command.groups
 			command_path.remove_at(0)
 		else:
-			Logger.warn("Command path of \"%s\" is not valid." % command_path[0], SYSTEM)
+			Logger.error("Command path of \"%s\" is not valid." % command_path[0], SYSTEM)
+			return
 		
 		# TODO : get command from string.
 		for key: String in command_path:
@@ -218,7 +223,7 @@ static func get_help(command_path: PackedStringArray = []) -> void:
 	# loop through all command groups and
 	# remove them until there's only ungrouped commands in "keys".
 	if groups:
-		for key: String in keys:
+		for key: String in subcommands.keys():
 			# if any command group has the given key, remove it from the list.
 			if groups.all(func(group: TerminalCommandGroup): return group.commands.has(key)):
 				keys.remove_at(keys.find(key))
@@ -239,11 +244,28 @@ static func get_help(command_path: PackedStringArray = []) -> void:
 	# TODO : print groups.
 	for group: TerminalCommandGroup in groups:
 		# print description.
-		Terminal.etch_raw("\n\n%s\n" % [group.description])
+		Terminal.etch_raw("%s%s\n" % ["\n" if keys else "", group.description])
 		
 		# print commands within group and their descriptions.
 		for key: String in group.commands:
 			_print_help_subcommand(subcommands[key], "\t")
+
+static func _register_regex() -> void:
+	regex_command.compile('^[A-Za-z]+$')
+	regex_string.compile('(?<!\\\\)"([\\S\\s]*?)(?<!\\\\)"')
+	regex_flag.compile('^--?[A-Za-z]+$')
+	regex_number.compile('^\\d+(\\.\\d*)?$')
+	regex_int.compile('^\\d+(?!(.\\d*))')
+	# https://github.com/godotengine/godot-proposals/issues/2927#issuecomment-884204291
+	regex_bool.compile('^(?i)((true|false)|((enable|disable)d?))$')
+	regex_true.compile('^(?i)(true|enabled?)$')
+	regex_whitespace.compile('[^\\s​⠀]')
+
+## internal command for [method get_help].
+static func _print_help_subcommand(command: TerminalCommand, tab: String = "") -> void:
+	Terminal.etch_raw(tab + command.name)
+	Terminal.etch_raw(" ".repeat(max(9 - command.name.length(), 0)))
+	Terminal.etch_raw(" " + command.description.replace("\n", tab + "\n" + " ".repeat(max(10, command.name.length() + 1))) + "\n")
 
 static func _no_command() -> void:
 	return Logger.warn("No command given.", SYSTEM)
@@ -280,8 +302,10 @@ static func add_command(name: String, description: String = "No description.") -
 	command_registry[name] = TerminalCommand.new(name, description)
 	return command_registry[name]
 
-static func add_command_group(description: String) -> void:
-	command_groups.push_back(TerminalCommandGroup.new(description))
+static func add_command_group(description: String) -> TerminalCommandGroup:
+	var group = TerminalCommandGroup.new(description)
+	command_groups.push_back(group)
+	return group
 
 #endregion  COMMANDS.
 

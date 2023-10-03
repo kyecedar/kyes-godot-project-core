@@ -7,10 +7,12 @@ var commands : Array[String] = []
 func _init(description: String) -> void:
 	self.description = description
 
-func add_command(command: String) -> void:
-	commands.push_back(command)
+func add(commands: PackedStringArray = []) -> TerminalCommandGroup:
+	for command: String in commands:
+		self.commands.push_back(command)
+	return self
 
-func remove_command(command: String) -> void:
+func remove(command: String) -> void:
 	var i = commands.find(command)
 	if i == -1:
 		return

@@ -58,8 +58,10 @@ func add_ghost(name: String, type: int, description: String = "No description.")
 	ghosts[name] = [type, description]
 	return self
 
-func add_group(description: String) -> void:
-	groups.push_back(TerminalCommandGroup.new(description))
+func add_group(description: String) -> TerminalCommandGroup:
+	var group = TerminalCommandGroup.new(description)
+	groups.push_back(group)
+	return group
 
 ## Sets the execution function of command.[br]
 ## Returns self.
