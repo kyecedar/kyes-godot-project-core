@@ -22,7 +22,7 @@ func _ready() -> void:
 		terminal.history.clear()
 	)
 	
-	var command_echo = Terminal.add_command("echo")
+	var command_echo = Terminal.add_command("echo", "Echo string to terminal. BBCode available.")
 	command_echo.add_ghost("string", TYPE_STRING, "String to echo to terminal.")
 	command_echo.set_execute(func(options: Dictionary):
 		if not options.has("string"):

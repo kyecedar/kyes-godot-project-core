@@ -4,6 +4,8 @@ extends Control
 
 @onready var titlebar : Label = $content/vbox/titlebar/text_region/title
 @onready var titlebar_drag : Panel = $content/vbox/titlebar/text_region/drag
+@onready var scroll_box : ScrollContainer = $content/vbox/scroll
+@onready var scroll_bar : VScrollBar = scroll_box.get_v_scroll_bar()
 
 @onready var history : RichTextLabel = $content/vbox/scroll/container/history
 @onready var caret   : Label    = $content/vbox/scroll/container/input/caret_container/caret
@@ -35,8 +37,9 @@ var command_history     : Array[String] = []
 var command_index       : int = -1 ## Points to a command in the command history.[br]Changes when user navigates through command history with arrow keys.
 var command_temp        : String = "" ## When user navigates from the command they're typing, store it here and recover it when index reaches -1 again.
 var parent_control_node : Control ## Parent. Used to constrain terminal inside.
-var character_width     : int ## Width of a single character.[br]Obtained by getting width of caret.
-var character_height    : int ## Height of a single character.[br]Obtained by getting height of caret.
+var character_width     : int : get = _get_character_width  ## Width of a single character.[br]Obtained by getting width of caret.
+var character_height    : int : get = _get_character_height ## Height of a single character.[br]Obtained by getting height of caret.
+var auto_scroll         : bool = true ## If terminal should be locked to the bottom or not.
 
 # TODO : remember to keep zero width spaces in ghost line.
 
@@ -54,7 +57,8 @@ func _ready() -> void:
 	corner_size = corner_size
 	
 	input.text_changed.connect(_on_input_change)
-	get_viewport().size_changed.connect(_on_viewport_resize)
+	scroll_bar.scrolling.connect(func(): _on_scroll.call_deferred())
+	#get_viewport().size_changed.connect(_on_viewport_resize)
 	get_tree().get_root().connect("size_changed", _on_viewport_resize)
 	
 	titlebar_drag.mouse_entered.connect(func(): if not dragging: hovering_titlebar = true)
@@ -77,68 +81,21 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if input.has_focus():
 		if event is InputEventKey:
-			if (Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_KP_ENTER)):
-				# https://www.reddit.com/r/godot/comments/xn2tmg/comment/j1dyaeg
-				if not Input.is_key_pressed(KEY_SHIFT):
-					get_viewport().set_input_as_handled()
-					submit_input()
-				else:
-					input.insert_text_at_caret('\n')
-			elif Input.is_key_pressed(KEY_UP):
-				if not command_history:
-					return
-				
-				# test if caret is at top of input.
-				if not input.get_caret_line(0):
-					# increment through command history.
-					if command_index == -1:
-						command_temp = input.text
-					
-					# TODO : set caret at end.
-					
-					command_index = min(command_history.size() - 1, command_index + 1)
-					print(command_index)
-					input.text = command_history[command_index]
-				pass
-			elif Input.is_key_pressed(KEY_DOWN):
-				print(input.get_caret_line(0) == input.get_line_count() - 1)
-				if not command_history:
-					return
-				
-				# test if caret is at bottom of input.
-				if input.get_caret_line(0) == input.get_line_count() - 1:
-					command_index = max(command_index - 1, -1)
-					
-					# TODO : set caret at end.
-					
-					if command_index > -1:
-						input.text = command_history[command_index]
-					else:
-						input.text = command_temp
-				pass
+			_input_handle_text(event)
+	
+	# TODO : test if user scrolls away from bottom, change auto_scroll accordingly.
+	if event is InputEventMouseButton:
+		if (event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN) and event.pressed:
+			_on_scroll.call_deferred()
 	
 	if not drag_and_resize:
 		return
 	
 	if event is InputEventMouseMotion:
-		if dragging:
-			_handle_drag(event)
-		elif resizing:
-			_handle_edge_drag(event)
+		_input_handle_drag_resize(event)
 	
 	elif event is InputEventMouseButton:
-		if hovering_edge:
-			if not resizing:
-				resize_position = position
-				resize_size = size
-			resizing = event.button_index == MOUSE_BUTTON_LEFT and event.pressed
-			if not resizing:
-				hovering_edge = null
-		
-		elif hovering_titlebar or (event.button_index == MOUSE_BUTTON_MIDDLE and mouse_over()):
-			if not dragging:
-				resize_position = position - event.position
-			dragging = (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_MIDDLE) and event.pressed
+		_input_handle_hovering(event)
 
 #region //  FONT.
 
@@ -181,18 +138,67 @@ func submit_input() -> void:
 		for line in split_input:
 			display_input += "\n" + " ".repeat(caret.text.length()) + line
 		
+		_on_etch.call_deferred()
 		history.add_text(("\n" if history.get_parsed_text() else "") + display_input)
 		print(display_input)
 	
-	# TODO : send command to be parsed.
+	# send command to be parsed.
 	if input.text:
 		command_history.push_front(input.text)
 		command_index = -1
 		Terminal.execute(Terminal.parse_command(input.text))
 		input.text = ""
 
+func _input_handle_text(event: InputEventKey) -> void:
+	if (Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_KP_ENTER)):
+		# https://www.reddit.com/r/godot/comments/xn2tmg/comment/j1dyaeg
+		if not Input.is_key_pressed(KEY_SHIFT):
+			get_viewport().set_input_as_handled()
+			submit_input()
+		else:
+			input.insert_text_at_caret('\n')
+	elif Input.is_key_pressed(KEY_UP):
+		if not command_history:
+			return
+		
+		# test if caret is at top of input.
+		if not input.get_caret_line(0):
+			# increment through command history.
+			if command_index == -1:
+				command_temp = input.text
+			
+			# TODO : set caret at end.
+			input.set_caret_line(input.get_line_count())
+			input.set_caret_column(1000)
+			print(input.get_line_width(input.get_line_count()))
+			print(character_width)
+			
+			command_index = min(command_history.size() - 1, command_index + 1)
+			input.text = command_history[command_index]
+	elif Input.is_key_pressed(KEY_DOWN):
+		if not command_history:
+			return
+		
+		# test if caret is at bottom of input.
+		if input.get_caret_line(0) == input.get_line_count() - 1:
+			command_index = max(command_index - 1, -1)
+			
+			# TODO : set caret at end.
+			input.set_caret_line(input.get_line_count())
+			input.set_caret_column(1000)
+			#input.get_gutter_width()
+			
+			if command_index > -1:
+				input.text = command_history[command_index]
+			else:
+				input.text = command_temp
+
 func _on_input_change() -> void:
 	pass
+
+func _on_scroll() -> void:
+	# https://ask.godotengine.org/133583/auto-scroll-user-bottom-chat-they-display-scroll-down-button
+	auto_scroll = (scroll_bar.max_value - scroll_box.size.y - 1) - scroll_bar.value < 0
 
 ## Updates minimum sizes for caret.
 func _update_caret_sizing() -> void:
@@ -206,6 +212,12 @@ func _update_caret_sizing() -> void:
 
 func etch(text: String) -> void:
 	history.append_text(text)
+	_on_etch.call_deferred()
+
+## Calls deferedly whenever stuff is etched on the terminal or when user presses enter in input field.
+func _on_etch() -> void:
+	# scroll down to new thing if scroll down is enabled.
+	scroll_bar.value = scroll_bar.max_value
 
 #endregion  ETCH.
 
@@ -220,6 +232,26 @@ var resize_size       : Vector2i = Vector2i.ZERO ## When resizing, use this as r
 
 func mouse_over() -> bool:
 	return Rect2(Vector2(), size).has_point(get_local_mouse_position())
+
+func _input_handle_drag_resize(event: InputEventMouseMotion) -> void:
+	if dragging:
+		_handle_drag(event)
+	elif resizing:
+		_handle_edge_drag(event)
+
+func _input_handle_hovering(event: InputEventMouseButton) -> void:
+	if hovering_edge:
+		if not resizing:
+			resize_position = position
+			resize_size = size
+		resizing = event.button_index == MOUSE_BUTTON_LEFT and event.pressed
+		if not resizing:
+			hovering_edge = null
+	
+	elif hovering_titlebar or (event.button_index == MOUSE_BUTTON_MIDDLE and mouse_over()):
+		if not dragging:
+			resize_position = position - event.position
+		dragging = (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_MIDDLE) and event.pressed
 
 ## Constrains terminal to fit within screen.
 func _constrain() -> void:
@@ -294,6 +326,12 @@ func _on_viewport_resize() -> void:
 ## Get size of parent. If no parent control node, then use window size.
 func _get_parent_size() -> Vector2i:
 	return parent_control_node.size if parent_control_node else DisplayServer.window_get_size()
+
+func _get_character_width() -> float:
+	return caret.size.x / caret.text.length()
+
+func _get_character_height() -> float:
+	return caret.size.y
 
 #endregion GETTERS.
 

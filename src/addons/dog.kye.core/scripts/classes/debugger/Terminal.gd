@@ -270,14 +270,14 @@ static func _no_execution_method(command: String) -> void:
 
 ## Creates and adds command to registry if command under given name doesn't exist.[br]
 ## Returns null if command already exists.
-static func add_command(name: String) -> TerminalCommand:
+static func add_command(name: String, description: String = "No description.") -> TerminalCommand:
 	# command already exists, return null.
 	if command_registry.has(name):
 		Logger.error("Command under \"%s\" already registered. Command not created." % name, SYSTEM)
 		return null
 	
 	# create and return command.
-	command_registry[name] = TerminalCommand.new(name)
+	command_registry[name] = TerminalCommand.new(name, description)
 	return command_registry[name]
 
 static func add_command_group(description: String) -> void:
