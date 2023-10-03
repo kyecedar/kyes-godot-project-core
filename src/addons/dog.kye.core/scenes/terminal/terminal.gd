@@ -6,6 +6,7 @@ extends Control
 @onready var titlebar_drag : Panel = $content/vbox/titlebar/text_region/drag
 @onready var scroll_box : ScrollContainer = $content/vbox/scroll
 @onready var scroll_bar : VScrollBar = scroll_box.get_v_scroll_bar()
+@onready var container : VBoxContainer = $content/vbox/scroll/container
 
 @onready var history : RichTextLabel = $content/vbox/scroll/container/history
 @onready var caret   : Label    = $content/vbox/scroll/container/input/caret_container/caret
@@ -41,6 +42,9 @@ var character_width     : int : get = _get_character_width  ## Width of a single
 var character_height    : int : get = _get_character_height ## Height of a single character.[br]Obtained by getting height of caret.
 var auto_scroll         : bool = true ## If terminal should be locked to the bottom or not.
 
+
+var bitch : int = 0
+
 # TODO : remember to keep zero width spaces in ghost line.
 
 func _ready() -> void:
@@ -57,7 +61,8 @@ func _ready() -> void:
 	corner_size = corner_size
 	
 	input.text_changed.connect(_on_input_change)
-	scroll_bar.scrolling.connect(func(): _on_scroll.call_deferred())
+	#scroll_bar.scrolling.connect(func(): _on_scroll.call_deferred())
+	scroll_bar.scrolling.connect(_on_scroll_deferred)
 	#get_viewport().size_changed.connect(_on_viewport_resize)
 	get_tree().get_root().connect("size_changed", _on_viewport_resize)
 	
@@ -96,6 +101,10 @@ func _input(event: InputEvent) -> void:
 	
 	elif event is InputEventMouseButton:
 		_input_handle_hovering(event)
+
+func _process(_delta: float) -> void:
+	if auto_scroll:
+		scroll_box.scroll_vertical = scroll_bar.max_value
 
 #region //  FONT.
 
@@ -138,7 +147,6 @@ func submit_input() -> void:
 		for line in split_input:
 			display_input += "\n" + " ".repeat(caret.text.length()) + line
 		
-		_on_etch.call_deferred()
 		history.add_text(("\n" if history.get_parsed_text() else "") + display_input)
 		print(display_input)
 	
@@ -199,6 +207,10 @@ func _on_input_change() -> void:
 func _on_scroll() -> void:
 	# https://ask.godotengine.org/133583/auto-scroll-user-bottom-chat-they-display-scroll-down-button
 	auto_scroll = (scroll_bar.max_value - scroll_box.size.y - 1) - scroll_bar.value < 0
+	scroll_box.follow_focus = auto_scroll
+
+func _on_scroll_deferred() -> void:
+	_on_scroll.call_deferred()
 
 ## Updates minimum sizes for caret.
 func _update_caret_sizing() -> void:
@@ -212,12 +224,6 @@ func _update_caret_sizing() -> void:
 
 func etch(text: String) -> void:
 	history.append_text(text)
-	_on_etch.call_deferred()
-
-## Calls deferedly whenever stuff is etched on the terminal or when user presses enter in input field.
-func _on_etch() -> void:
-	# scroll down to new thing if scroll down is enabled.
-	scroll_bar.value = scroll_bar.max_value
 
 #endregion  ETCH.
 
