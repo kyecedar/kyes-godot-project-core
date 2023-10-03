@@ -149,6 +149,7 @@ func submit_input() -> void:
 		
 		history.add_text(("\n" if history.get_parsed_text() else "") + display_input)
 		print(display_input)
+		auto_scroll = true
 	
 	# send command to be parsed.
 	if input.text:
